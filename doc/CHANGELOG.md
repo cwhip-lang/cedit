@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add `.gitattributes` so GitHub does not label `.cw` files as RedCode.
 - Point repository links at the `cwhip-lang` GitHub organization.
 - Parse startup paths and `--test` through the SDK `cli` 0.1.0 package.
 - Auto-indent (when enabled) adds a level inside `{` / `[` and splits paired
