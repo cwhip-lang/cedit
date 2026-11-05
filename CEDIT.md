@@ -24,19 +24,19 @@ Native numeric aliases `int`, `uint`, and `float` canonicalize to
 remains reserved. Callable types use `R<P1,P2>` (or `void<>` for an action
 with no parameters); `callback` is an ordinary identifier, not a keyword.
 The SDK must also include the syntax cleanup in
-[chucktilbury/cwhip#37](https://github.com/chucktilbury/cwhip/pull/37):
+[cwhip-lang/cwhip#37](https://github.com/cwhip-lang/cwhip/pull/37):
 return operands use `return(expr)`, dictionaries use `[key: value]` or `[:]`,
 and line comments use `#` or `//`, not `;`.
 Conditional chains use `else(condition) { ... }`, not `else if`.
 The SDK's conditional-chain support is tracked in
-[chucktilbury/cwhip#38](https://github.com/chucktilbury/cwhip/pull/38).
+[cwhip-lang/cwhip#38](https://github.com/cwhip-lang/cwhip/pull/38).
 cedit has no type-keyword completion list; bracket/quote auto-completion is
 unchanged. Highlighting follows the file name. `.cw` uses the bundled `cwhip`
 definition. Other names use the GtkSourceView language specs installed with
 the SDK, so C, Python, and the other host definitions are highlighted.
 Untitled documents, `.txt` files, and unrecognized names stay plain text.
 Save As re-evaluates the language for the new name. See
-[GTK source editing](https://github.com/chucktilbury/cwhip/blob/master/doc/GTK.md#language-definitions).
+[GTK source editing](https://github.com/cwhip-lang/cwhip/blob/master/doc/GTK.md#language-definitions).
 Documents are represented separately from notebook pages; opening an
 already-open path selects its existing tab. `openDocument(path)` returns the
 existing or newly opened document independently of selection, and
@@ -120,7 +120,7 @@ Startup paths and `--test` are parsed through the shared stdlib `cli` package.
 to open; `--test` runs the in-process smoke test after present.
 
 cedit-owned CLI and GUI failures use the shared
-[diagnostic format](https://github.com/chucktilbury/cwhip/blob/master/doc/DIAGNOSTICS.md):
+[diagnostic format](https://github.com/cwhip-lang/cwhip/blob/master/doc/DIAGNOSTICS.md):
 `cedit: error[CEDITxxxx]: explanation`. The shared template setup script keeps
 its plain-text diagnostics; its usage errors return 2. CLI diagnostics go to
 stderr, and other failures retain their existing
@@ -490,7 +490,7 @@ description, and website/repository URLs as text. **Close** hides it; it is
 closed with the editor. The current dialog has stale licensing and repository
 text: this repository is [MIT-licensed](LICENSE), despite the dialog's
 "no license file" message, and cedit's repository is
-[chucktilbury/cedit](https://github.com/chucktilbury/cedit), not the upstream
+[cwhip-lang/cedit](https://github.com/cwhip-lang/cedit), not the upstream
 Cwhip repository shown there.
 
 ## Preferences and settings

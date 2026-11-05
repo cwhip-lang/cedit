@@ -2,7 +2,7 @@
 
 `cedit` is the Cwhip source editor: a GTK 4 and GtkSourceView application
 implemented in Cwhip. Source:
-[github.com/chucktilbury/cedit](https://github.com/chucktilbury/cedit).
+[github.com/cwhip-lang/cedit](https://github.com/cwhip-lang/cedit).
 
 This directory contains the editor in `src/`, tests in `tests/`, and build
 helpers in `scripts/`. It is a standalone CMake project against an installed
