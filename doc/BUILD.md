@@ -26,9 +26,9 @@ Native runtime signature literals still use the legacy encoding for ABI
 compatibility; the C fixtures deliberately retain those strings.
 
 It must also include the syntax cleanup from
-[chucktilbury/cwhip#37](https://github.com/chucktilbury/cwhip/pull/37) and
+[cwhip-lang/cwhip#37](https://github.com/cwhip-lang/cwhip/pull/37) and
 conditional-chain support from
-[chucktilbury/cwhip#38](https://github.com/chucktilbury/cwhip/pull/38),
+[cwhip-lang/cwhip#38](https://github.com/cwhip-lang/cwhip/pull/38),
 including matching SourceView definitions. Return operands use `return(expr)`,
 dictionary literals use `[key: value]` (`[:]` when empty), and `#` starts a
 line comment; `;` is no longer a Cwhip comment. Lists still use `[]`.
@@ -47,12 +47,12 @@ Use Cwhip sources containing the syntax cleanup from PR #37 and
 conditional-chain support from PR #38,
 the callable-syntax/native-alias migration,
 the numeric SDK/package migration and
-[chucktilbury/cwhip#25](https://github.com/chucktilbury/cwhip/pull/25)
+[cwhip-lang/cwhip#25](https://github.com/cwhip-lang/cwhip/pull/25)
 (numeric execution), in addition to the application-defaults support from
-[chucktilbury/cwhip#21](https://github.com/chucktilbury/cwhip/pull/21).
+[cwhip-lang/cwhip#21](https://github.com/cwhip-lang/cwhip/pull/21).
 The numeric SDK migration is a prerequisite, not part of this repository. Updating
 cedit or re-running its CMake configuration does not update the installed SDK.
-Follow the upstream [GUI SDK build instructions](https://github.com/chucktilbury/cwhip/blob/master/doc/GETTING_STARTED.md#add-the-optional-gui-sdk).
+Follow the upstream [GUI SDK build instructions](https://github.com/cwhip-lang/cwhip/blob/master/doc/GETTING_STARTED.md#add-the-optional-gui-sdk).
 For example, from an updated Cwhip source checkout, use a **new build directory
 and unused installation prefix** to avoid mixing old and new SDK files:
 
@@ -195,7 +195,7 @@ cedit-owned SDK-selection parser failures use
 plain-text diagnostics; diagnostics go to stderr and setup usage errors
 return 2. CMake's own package-discovery output remains intact.
 See [cedit's diagnostic boundaries](../CEDIT.md#diagnostics) and the shared
-[diagnostic contract](https://github.com/chucktilbury/cwhip/blob/master/doc/DIAGNOSTICS.md).
+[diagnostic contract](https://github.com/cwhip-lang/cwhip/blob/master/doc/DIAGNOSTICS.md).
 
 Whenever `CWHIP_SDK` or `sdk_prefix` selects a prefix, CMake searches only that
 prefix and clears a previously cached `Cwhip_DIR`, so switching SDKs in an

@@ -83,7 +83,7 @@ void Cedit.showAbout() {
             root.append(Gtk.Label("A GTK editor for Cwhip, written in Cwhip\nwith GtkSourceView syntax highlighting, a project explorer,\nand per-project configuration."))
             root.append(Gtk.Label("License: no license file is included in the repository."))
             root.append(Gtk.Label("Website: https://cwhip.org"))
-            root.append(Gtk.Label("Project repository: https://github.com/chucktilbury/cwhip"))
+            root.append(Gtk.Label("Project repository: https://github.com/cwhip-lang/cwhip"))
             Gtk.Button close = Gtk.Button("Close")
             close.onClicked(_self().closeAbout)
             root.append(close)
