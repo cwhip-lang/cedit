@@ -480,7 +480,7 @@ class ProjectChecks {
             require(ProjectFixture().has("About cedit", format("Version {}", version)) &&
                 ProjectFixture().has("About cedit", "cedit") &&
                 ProjectFixture().has("About cedit", "https://cwhip.org") &&
-                ProjectFixture().has("About cedit", "https://github.com/chucktilbury/cwhip"), "About contents")
+                ProjectFixture().has("About cedit", "https://github.com/cwhip-lang/cwhip"), "About contents")
             require(ProjectFixture().click("About cedit", "Close"), "Close button")
             require(!ProjectFixture().visible("About cedit"), "About hidden")
             menu(editor.aboutItem)
