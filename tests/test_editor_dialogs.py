@@ -13,6 +13,7 @@ from program_runner import environment, invoke
 
 DRIVER = r"""
 class Fixture {
+    public:
     void choose(String path, int64 accept, int64 overwrite)
     void collect()
     void edit(String text)
@@ -52,6 +53,7 @@ void Fixture.selectMarked(String marker, int64 first, int64 last) from "fixture_
 void Fixture.cleanup() from "fixture_editor_cleanup"
 
 class EditorChecks {
+    public:
     Cedit editor
     int64 stage
     int64 checks

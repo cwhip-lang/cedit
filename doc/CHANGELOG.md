@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Mark cedit class members `public:` so the editor and its compiled test
+  drivers build with cwhip's private-by-default member access.
 - CODING cleanup: file headers, Changelog stamps, class/method comments
   (Purpose/Parameters/Returns), and a local `doc/CODING.md` pointing at the
   shared cplanets locks. No intentional behavior changes.

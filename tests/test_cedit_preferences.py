@@ -15,6 +15,7 @@ from program_runner import environment, invoke
 
 DRIVER = r"""
 class PreferenceFixture {
+    public:
     void collect()
     bool shortcut(String trigger)
     bool visible()
@@ -47,6 +48,7 @@ bool PreferenceFixture.noEmoji() from "fixture_editor_no_emoji"
 void PreferenceFixture.tick() from "fixture_preferences_tick"
 
 class PreferencesChecks {
+    public:
     Cedit editor
     void<> nextAction
     void<String> shutdownAction

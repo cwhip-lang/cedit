@@ -7,6 +7,7 @@
  * Changelog:
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
+ *   2026-11-14  Public members for private-by-default cwhip.
  */
 
 /*
@@ -14,6 +15,7 @@
  * expand restores, and open-file callback for activated leaves.
  */
 class ProjectExplorer {
+    public:
     ProjectExplorer _self()
     Gtk.Box sidebar
     Gtk.Tree tree

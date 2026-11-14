@@ -10,6 +10,7 @@ from program_runner import environment, invoke
 
 DRIVER = r"""
 class NumericChecks {
+    public:
     int64 checks
     void noop() {}
     int add(int32 left, int8 right) { return(left + right) }

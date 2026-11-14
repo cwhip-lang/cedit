@@ -7,6 +7,7 @@
  * Changelog:
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
+ *   2026-11-14  Public members for private-by-default cwhip.
  */
 
 /*
@@ -14,6 +15,7 @@
  * launch/stop, didOpen/didChange/didClose, and publishDiagnostics.
  */
 class LanguageClient {
+    public:
     Cedit editor
     Process.AsyncProcess process
     Process.OutputDecoder decoder

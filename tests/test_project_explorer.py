@@ -12,6 +12,7 @@ from program_runner import environment, invoke
 
 DRIVER = r"""
 class ExplorerFixture {
+    public:
     void choose(String path, int64 accept, int64 overwrite)
     void collect()
     bool alert(String fragments)
@@ -47,6 +48,7 @@ void ExplorerFixture.stop() from "explorer_stop"
 void ExplorerFixture.later(void<> action) from "explorer_later"
 
 class ExplorerChecks {
+    public:
     Cedit editor
     int64 stage
     int64 deadline
@@ -304,6 +306,7 @@ class ExplorerChecks {
 }
 
 class ExplorerLifetime {
+    public:
     ExplorerLifetime _self()
     Cedit editor
     Gtk.DirectoryScan scan
