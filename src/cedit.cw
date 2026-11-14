@@ -11,6 +11,7 @@
  *   2026-10-14  Seed standalone cedit repository.
  *   2026-10-29  Split method bodies into included units.
  *   2026-11-13  CODING file header and class comment.
+ *   2026-11-14  Public members for private-by-default cwhip.
  */
 
 import gtk
@@ -41,6 +42,7 @@ include "recentEntry.cw"
  * out-of-class definitions.
  */
 class Cedit {
+    public:
     Cedit _self()
     CeditSettings settings
     Gtk.TransientWindow preferencesWindow

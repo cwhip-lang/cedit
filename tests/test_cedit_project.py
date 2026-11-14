@@ -18,6 +18,7 @@ from program_runner import environment, invoke
 
 DRIVER = r"""
 class ProjectFixture {
+    public:
     void choose(String path, int64 accept, int64 overwrite)
     void collect()
     bool alert(String fragments)
@@ -41,6 +42,7 @@ bool ProjectFixture.has(String title, String fragment) from "project_window_has"
 int64 ProjectFixture.tabWidth() from "project_tab_width"
 
 class ProjectChecks {
+    public:
     Cedit editor
     void<> nextAction
     String mode
