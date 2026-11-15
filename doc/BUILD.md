@@ -239,6 +239,7 @@ build
 ctest --output-on-failure
 build test-all
 build check-noop
+build format
 cmake --install "$_PROJECT_LOC/build" --prefix /path/to/cedit
 rebuild
 clean
@@ -283,7 +284,10 @@ alone with `python3 tests/test_sdk_discovery.py`. Xvfb and
 dbus-daemon enable isolated headless suites; otherwise configuration prints
 an explicit exclusion. No test uses the user's desktop. Ordinary CTest does
 not rebuild the project; `test-all` builds first, `check-noop` is the explicit
-incremental-build regression. This is a proof-of-concept interface with no
+incremental-build regression. `format` runs `cwhip-format -i` on every `*.cw`
+file outside the build tree (`cmake/Format.cmake`). That target reformats the
+source tree; it is not the editor commands `format` and `format-selection`.
+This is a proof-of-concept interface with no
 promise of cross-version runtime ABI or release packaging stability.
 
 `cedit_numeric` checks the actual settings/workspace parsing boundaries (including

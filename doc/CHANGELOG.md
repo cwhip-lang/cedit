@@ -4,7 +4,9 @@
 
 - Edit > Format Document (`format`) and Edit > Format Selection
   (`format-selection`) ask the language server for `textDocument/formatting`
-  and `textDocument/rangeFormatting`. A server that does not offer the
+  and `textDocument/rangeFormatting`. The request sends `options.tabSize` and
+  `options.insertSpaces` from the effective tab width and insert-spaces
+  setting, including a project override. A server that does not offer the
   request, or that answers it with an error, leaves the buffer unchanged and
   reports the failure on the status line.
 - Mark cedit class members `public:` so the editor and its compiled test
@@ -37,17 +39,23 @@
 - Crash recovery: dirty named buffers snapshot to `.cedit/recovery/` on a
   15-second poll and on window close; Restore/Cancel on project reopen
   (Cancel discards the snapshot and keeps the saved file); cleared after Save.
-- Edit > Find in Project… (`Ctrl+Shift+F`) first scans every open document
-  that has a path, including paths outside the project root, then walks the
-  project tree. The tree skips `.git` and `.cedit` even when Show Hidden is
-  on, and searches an open file from its buffer (an open file inside the tree
-  can be listed twice). Literal match; no replace. Activate a hit to open
-  and center.
+- Edit > Find in Project… (`Ctrl+Shift+F`) needs an open folder (`Open a
+  project folder to search` otherwise; open documents are not scanned). It
+  then scans every open document that has a path, including paths outside
+  the project root, then walks the project tree. The tree skips `.git` and
+  `.cedit` even when Show Hidden is on, and searches an open file from its
+  buffer (an open file inside the tree can be listed twice). **Case
+  sensitive** and **Whole words** default off (a case-insensitive substring;
+  whole words use only ASCII letters, digits, and `_`). No replace and no
+  regular expression. Stops at 500 hits (`Results truncated at 500`) and
+  cuts each snippet at 120 characters. Activate a hit to open and center.
 - Multi-line selections accept typing / Backspace / Delete at the same column on
   each selected line (cwhip `setSelectedLinesEdit`; not true multi-carets).
 - Gutter marks unsaved lines (vs last saved `diskText`); cleared on save/reload.
-- Editor preference `right_margin` (default 80, 0 = off) draws the SourceView
-  long-line guide.
+- Editor preference `right_margin` (integer 0-512, default 80, 0 = off)
+  draws the SourceView long-line guide. A value outside that range is
+  rejected (`editor.right_margin must be an integer from 0 to 512`) and the
+  previous value is kept.
 - Edit > Toggle Line Comment (`Ctrl+/`) and Toggle Block Comment; language-aware
   `//` / `#` and `/* */` for C-family selections.
 - Edit > Indent / Outdent (`Tab` / `Shift+Tab`) indent selected lines using the
@@ -62,8 +70,8 @@
   by a per-folder `.cedit` copy of those keys.
 - Preferences navigation is Editor, Keyboard, Project, Startup. Project opens
   Configure Project. Each folder uses a full `.cedit/settings.toml` seeded
-  from the global template, with local precedence; an optional checkbox also
-  updates the global defaults.
+  from the global template, with local precedence; the one-shot **Save to
+  global settings** button also updates the global defaults.
 - File > Recent is a submenu; the sidebar close control is a flat X; View has
   Show Line Ends.
 - The project sidebar cannot be dragged to zero width, and the editor notebook
@@ -77,7 +85,7 @@
   they arrive. Marks and tooltips still carry the messages.
 - Keep the native edit-pane Cut/Copy/Paste menu and add Reload to it. Project
   and Files right-click menus are native menu rows for Refresh and Show Hidden.
-- File > Recent opens a chooser of session files. External disk edits are
+- File > Recent is a submenu of session files. External disk edits are
   polled while a file is open. Language-server diagnostics mark, underline,
   and tooltip the reported lines.
 - Split the editor into class and method files under `src/`. The session
