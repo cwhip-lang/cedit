@@ -124,10 +124,12 @@ cedit-owned CLI and GUI failures use the shared
 `cedit: error[CEDITxxxx]: explanation`. The shared template setup script keeps
 its plain-text diagnostics; its usage errors return 2. CLI diagnostics go to
 stderr, and other failures retain their existing
-nonzero exit behavior. Codes identify stable reporting boundaries: `CEDIT0001`
-for usage/startup invocation, `CEDIT1001`
-and `CEDIT1002` for document open/save, `CEDIT2001` and `CEDIT2002` for settings
-and project metadata, and `CEDIT3001` for process/configuration failures.
+nonzero exit behavior. Codes the program emits are `CEDIT0001` for
+usage/startup invocation, `CEDIT1001` and `CEDIT1002` for document open/save,
+`CEDIT2001` for settings, SDK selection, and application-defaults failures,
+and `CEDIT2002` for project metadata. `CEDIT3001` is not emitted.
+Language-server process failures are plain status text, such as
+`Language server write failed`, with no `CEDIT` code.
 GUI file and project failures keep the affected path and reason visible and
 include a recovery hint; failed document saves leave edits unsaved and do not
 report success. Existing project/open dialogs remain, and routine information
@@ -232,6 +234,13 @@ Paste, and Select All. `<Control><Alt>s` saves all modified named documents,
 and `<Control>comma` opens Preferences. Menus and configurable
 shortcuts resolve to the same named command callbacks.
 
+**Edit > Find in Project…** searches every open document that has a path,
+including paths outside the project root, then walks the project tree. The
+tree walk skips `.git` and `.cedit` even when Show Hidden is on. A file that
+is already open is searched from its buffer rather than from disk, so an open
+file inside the tree can appear twice. The match is literal. There is no
+replace. Activating a hit opens that path and centers the line.
+
 ## Project Explorer
 
 **File > Open Folder...** opens a modal folder chooser parented to the editor.
@@ -286,8 +295,12 @@ asks to Reload, Save, or Close.
 Preferences stores `editor.lsp_command`. An empty command turns the client
 off. `cwhip-lsp` talks to the Cwhip language server and only for `.cw` files.
 `clangd` talks to clangd for C and C++ names. Any other command is split on
-spaces and started as that server; plain-text names such as `.txt` and `.md`
-are not sent. The editor keeps a full copy of each named buffer.
+spaces and started as that server. A buffer is sent only when its GtkSource
+language id is non-empty. Untitled documents and `.txt` stay empty and are
+not sent. `.md` is `markdown` when the host language specs are registered
+(`*.md` in the GtkSourceView markdown spec; the SDK registers every `.lang`
+on the language path), and those buffers are sent. The editor keeps a full
+copy of each named buffer.
 `textDocument/publishDiagnostics` marks each reported line in the gutter,
 underlines it, tints the background, and shows the message on mouseover. The
 status line only notes the count (never the full messages), so the window size
@@ -299,9 +312,9 @@ it is saved with the other editor settings.
 **View** checkboxes apply immediately and are saved in the user settings file:
 
 - **Show Line Numbers** is `editor.line_numbers` (default on). It stays in step
-  with the same checkbox in Preferences. A project override still wins; changing
-  the View item while an override is active updates that override and saves
-  `project.toml`, so the buffer matches the check.
+  with the same checkbox in Preferences. While a project override is active,
+  changing either checkbox copies the new value into that override, writes
+  `project.toml`, and the buffer matches the check.
 - **Show White Space** (`editor.show_whitespace`, default off) draws spaces,
   tabs, and non-breaking spaces.
 - **Show Line Ends** (`editor.show_line_ends`, default off) draws newline marks.
@@ -318,7 +331,8 @@ it is saved with the other editor settings.
 A Cwhip project is a folder containing `.cwhip/project.toml`. Ordinary folders
 still open through **File > Open Folder...** without any project metadata and
 use only the global Preferences. Opening or creating a project never executes
-anything: there are no build commands, LSP servers, plugins or trust prompts.
+anything: there are no build commands, project-defined language servers, or
+trust prompts.
 
 All project commands live in the **Project** menu and are ordinary named
 commands (`project-new`, `project-open`, `project-save`, `project-save-as`,
@@ -374,9 +388,13 @@ Saving** or **Cancel**.
 Effective editor settings are project override, then user Preference, then the
 built-in default. In Configure Project, a checked override row stores its value
 in `project.toml`; an unchecked row is absent from the file and inherits. While
-a project is active, Preferences shows which settings the project overrides,
-and changing an overridden Preference is saved but does not affect that
-project's documents. Overrides apply to existing and newly opened documents.
+a project is active, Preferences shows which settings the project overrides.
+Changing an overridden Preference is saved in the user settings and does not
+change that project's documents, except line numbers. While a line-number
+override is active, the Preferences checkbox and **View > Show Line Numbers**
+copy the new value into the override, write `project.toml`, and the open
+documents follow it. Other overrides apply to existing and newly opened
+documents and stay in effect when the matching Preference changes.
 
 ### Explorer exclusions
 
@@ -406,11 +424,15 @@ tab_width = 2
 insert_spaces = false
 ```
 
-Editor keys and ranges are the same as user settings (`font_family`,
-`font_size`, `tab_width`, `insert_spaces`, `line_numbers`, `wrap`,
-`right_margin` (0 hides the guide; default 80),
-`highlight_current_line`, `auto_indent`, `show_unsaved_marks`). Unknown keys are
-retained when saving.
+The loader applies only these `[editor]` keys, with the same checks as user
+settings: `font_family`, `font_size`, `tab_width`, `insert_spaces`,
+`line_numbers`, `wrap`, and `highlight_current_line`. Configure Project
+offers only those seven. It does not implement project overrides for
+`right_margin`, `auto_indent`, or `show_unsaved_marks`. Those stay user
+settings (right margin 0 hides the guide and defaults to 80; auto-indent and
+unsaved marks default on). If one of them appears in `project.toml`, save
+keeps it as an unknown key and documents do not change. Other unknown keys
+are retained the same way.
 
 `.cwhip/workspace.toml` (at most 1 MiB) is local session state:
 
@@ -550,7 +572,12 @@ Preferences save automatically to `.cedit/settings.toml` in the active project
 or folder. That local file uses the same schema as the global template at
 `$XDG_CONFIG_HOME/cwhip/settings.toml` (or `$HOME/.config/cwhip/settings.toml`
 when XDG_CONFIG_HOME is unset/empty). Starting in a directory without a local
-file replicates the global template there. Opening a root that already has a
+file replicates the global template there. On startup, when that global file
+is missing and settings loaded without errors, the loader writes the settings
+already in memory before any preference edit (built-in editor defaults, or
+the legacy shortcut map when `cwhip-shortcuts.conf` was read), then writes
+the working directory's `.cedit/settings.toml` from that template. Creation
+is not deferred until a setting changes. Opening a root that already has a
 local file loads it instead. **Save to global settings** copies the current
 preferences into the global template without changing the local auto-save
 behavior. Startup reopen of the last project is remembered in the global
@@ -573,6 +600,7 @@ show_whitespace = false
 show_line_ends = false
 show_indent_markers = false
 show_project_manager = true
+lsp_command = ""
 wrap = false
 right_margin = 80
 highlight_current_line = false
@@ -597,14 +625,21 @@ last_root = ""
 ```
 
 Editor keys are optional and use defaults when absent. Keyboard keys are
-command IDs (`new`, `open`, `save`, `save-as`, `save-all`, `close`, `quit`,
-`find`, `replace`, `undo`, `redo`, `cut`, `copy`, `paste`, `select-all`,
-`strip-trailing-spaces`, `preferences`,
-`project-new`, `project-open`, `project-save`,
-`project-save-as`, `project-delete`, `project-configure`, `about`); omitted IDs
-use defaults and `""` explicitly disables one. Unknown keyboard commands are
-errors. A missing file is normal first-run behavior: no file is created until
-a valid setting changes.
+command IDs (`new`, `open`, `save`, `save-as`, `save-all`, `close`,
+`close-all`, `reload`, `quit`, `find`, `replace`, `find-in-project`,
+`goto-line`, `indent`, `outdent`, `toggle-comment`, `toggle-block-comment`,
+`undo`, `redo`, `cut`, `copy`, `paste`, `select-all`,
+`strip-trailing-spaces`, `preferences`, `project-new`, `project-open`,
+`project-save`, `project-save-as`, `project-delete`, `project-configure`,
+`project-close`, `view-line-numbers`, `view-whitespace`, `view-line-ends`,
+`view-indent-markers`, `view-project-manager`, `about`,
+`plugin-insert-date`, `plugin-toggle-debug`); omitted IDs use defaults and
+`""` explicitly disables one. Unknown keyboard commands are errors. A missing
+settings file is a valid start. The loader does not wait for a preference
+edit: during startup, when the global file is absent and settings loaded
+without errors, it writes that file from the settings already in memory,
+then writes `.cedit/settings.toml` in the working directory from that
+template.
 
 The SDK location lives in a separate `cwhip/sdk.toml` (see
 [SDK selection](doc/BUILD.md#sdk-selection)); cedit never writes it. A legacy
@@ -670,14 +705,28 @@ by this increment), unknown commands, empty legacy triggers, and invalid trigger
 are reported explicitly, and automatic migration/saving is disabled until
 repaired. A conflicting later legacy line never overrides the earlier command.
 
+## Recovery
+
+While a project is open, dirty buffers that have a path are snapshotted under
+`.cedit/recovery/` every 15 seconds and when the window close is requested.
+Reopening the project offers **Restore** and **Cancel** when a snapshot
+differs from the text on disk. **Restore** copies the snapshot into the
+buffer (still unsaved) and removes the recovery file. **Cancel** discards
+the snapshot and keeps the file on disk; the status line says
+`Discarded recovery; kept saved file`. A successful save removes that
+document's snapshot.
+
+## Plugins
+
+Trusted in-process plugins register with `registerPlugin`. Two compile-in
+demos are on the **Plugins** menu and the edit context menu. **Insert
+date/time** inserts the Unix timestamp `Time.Clock().epochSeconds()` at the
+caret and sets the status line to `Plugin: inserted epoch seconds`. **Toggle
+debug marker** toggles a `# debug:` prefix on the selected lines. Opening a
+project does not run these commands.
+
 ## Deliberately deferred
 
-Dirty buffers are snapshotted under `.cedit/recovery/` while a project is open
-(periodic and on Quit); Restore applies the snapshot into the buffer (still
-unsaved) and removes the recovery file, while Cancel discards the snapshot and
-keeps the on-disk file. Trusted
-in-process plugins register via `registerPlugin` (compile-in demos: Insert
-date/time, Toggle debug marker under **Plugins** and the edit context menu).
 Dynamic `.cw` plugin loading is not shipped yet. Projects deliberately do not
 include build commands, Git integration, or project trust. A configurable
 toolbar is not included yet. Dialog controls and menu/shortcut commands use the

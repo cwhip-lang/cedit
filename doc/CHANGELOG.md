@@ -26,11 +26,18 @@
   Reset Editor/Keyboard buttons use natural width instead of stretching full-width.
   Right-margin guide visibility needs the matching cwhip SourceView draw fix.
 - Trusted in-process plugin hooks (`registerPlugin`) with Plugins menu demos:
-  Insert date/time and Toggle `# debug:` marker (also on the edit context menu).
-- Crash recovery: dirty buffers snapshot to `.cedit/recovery/`; Restore/Discard
-  on project reopen; cleared after Save.
-- Edit > Find in Project… (`Ctrl+Shift+F`) searches the project tree (literal
-  match; open buffers preferred; no replace); activate a hit to open and center.
+  Insert date/time, which inserts Unix epoch seconds (status
+  `Plugin: inserted epoch seconds`), and Toggle `# debug:` marker (also on
+  the edit context menu).
+- Crash recovery: dirty named buffers snapshot to `.cedit/recovery/` on a
+  15-second poll and on window close; Restore/Cancel on project reopen
+  (Cancel discards the snapshot and keeps the saved file); cleared after Save.
+- Edit > Find in Project… (`Ctrl+Shift+F`) first scans every open document
+  that has a path, including paths outside the project root, then walks the
+  project tree. The tree skips `.git` and `.cedit` even when Show Hidden is
+  on, and searches an open file from its buffer (an open file inside the tree
+  can be listed twice). Literal match; no replace. Activate a hit to open
+  and center.
 - Multi-line selections accept typing / Backspace / Delete at the same column on
   each selected line (cwhip `setSelectedLinesEdit`; not true multi-carets).
 - Gutter marks unsaved lines (vs last saved `diskText`); cleared on save/reload.
@@ -57,7 +64,9 @@
 - The project sidebar cannot be dragged to zero width, and the editor notebook
   scrolls its tabs so the sidebar can grow past the old maximum.
 - `cwhip-lsp` only receives `.cw` buffers; `clangd` only C/C++ names; other
-  servers skip plain text such as `.txt` and `.md`.
+  servers skip an empty GtkSource language id (untitled documents and `.txt`).
+  A recognized id is sent, including `.md` when the host specs register it as
+  `markdown`.
 - Language-server diagnostics no longer show a message strip under the document,
   and the status line only notes the count, so the window does not resize when
   they arrive. Marks and tooltips still carry the messages.
