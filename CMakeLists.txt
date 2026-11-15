@@ -31,4 +31,11 @@ if(BUILD_TESTING)
         COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure --parallel 1
         DEPENDS cedit USES_TERMINAL VERBATIM)
 endif()
+add_custom_target(format
+    COMMAND "${CMAKE_COMMAND}"
+        "-DSOURCE_DIR=${CMAKE_SOURCE_DIR}"
+        "-DBINARY_DIR=${CMAKE_BINARY_DIR}"
+        -P "${CMAKE_SOURCE_DIR}/cmake/Format.cmake"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    USES_TERMINAL VERBATIM)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_BINARY_DIR}/tests")
