@@ -9,11 +9,27 @@
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-14  Public members for private-by-default cwhip.
  *   2026-11-15  handles() comment: .md is sent when registered as markdown.
+ *   2026-11-15  Track formatting requests and server capabilities.
  */
 
 /*
+ * One text edit from a formatting response. Lines and characters are
+ * 0-based, matching the language server. The editor adds 1 when it
+ * applies the edit to a source view.
+ */
+class FormatEdit {
+    public:
+    int64 startLine
+    int64 startCharacter
+    int64 endLine
+    int64 endCharacter
+    String newText
+}
+
+/*
  * LanguageClient talks JSON-RPC over a stdio language server process:
- * launch/stop, didOpen/didChange/didClose, and publishDiagnostics.
+ * launch/stop, didOpen/didChange/didClose, publishDiagnostics, and
+ * textDocument/formatting plus textDocument/rangeFormatting.
  */
 class LanguageClient {
     public:
@@ -27,6 +43,14 @@ class LanguageClient {
     int64 generation
     int64 sentGeneration
     String diagnostics
+    int64 nextRequest
+    int64 formatRequest
+    EditorDocument formatDocument
+    int64 formatVersion
+    int64 formatGeneration
+    bool canFormat
+    bool canRangeFormat
+    int64 scanAt
 
     /*
      * Create a language client owned by the editor.
@@ -48,6 +72,14 @@ class LanguageClient {
         generation = 0
         sentGeneration = 0
         diagnostics = ""
+        nextRequest = 2
+        formatRequest = 0
+        formatDocument = null
+        formatVersion = 0
+        formatGeneration = 0
+        canFormat = false
+        canRangeFormat = false
+        scanAt = 0
     }
 
     /*
@@ -348,6 +380,10 @@ class LanguageClient {
         ready = false
         pending = ""
         process = null
+        formatRequest = 0
+        formatDocument = null
+        canFormat = false
+        canRangeFormat = false
     }
 
     /*
@@ -519,7 +555,8 @@ class LanguageClient {
     /*
      * Handle one complete JSON-RPC body from the server.
      *
-     * Purpose: on initialize result set ready and didOpen all docs; on
+     * Purpose: on initialize result set ready, record formatting
+     * capabilities, and didOpen all docs; apply a formatting result; on
      * publishDiagnostics mark lines and set short status.
      *
      * Parameters:
@@ -529,8 +566,11 @@ class LanguageClient {
      */
     void accept(String body) {
 
-        if (body.contains("\"id\":1") && body.contains("\"result\"")) {
+        if (isInitializeResult(body)) {
             ready = true
+            canFormat = capabilityEnabled(body, "documentFormattingProvider")
+            canRangeFormat = capabilityEnabled(body,
+                    "documentRangeFormattingProvider")
             writeFrame(
                     "{\"jsonrpc\":\"2.0\",\"method\":\"initialized\",\"params\":{}}")
             int64 index = 0
@@ -538,6 +578,10 @@ class LanguageClient {
                 sendOpen(editor.documents[index] as EditorDocument)
                 index = index + 1
             }
+            return
+        }
+
+        if (acceptFormat(body)) {
             return
         }
 
@@ -718,4 +762,24 @@ class LanguageClient {
         }
         editor.scheduleLanguagePoll()
     }
+
+    bool isInitializeResult(String body)
+    int64 jsonId(String body)
+    int64 skipSpace(String text, int64 index)
+    bool capabilityEnabled(String body, String name)
+    int64 findLast(String text, String needle, int64 limit)
+    int64 hexDigit(uint8 byte)
+    int64 hexValue(String text, int64 origin)
+    void appendCode(String value, int64 code)
+    String takeString(String body, int64 origin)
+    int64 readLabeled(String text, String label, int64 offset)
+    bool documentListed(EditorDocument document)
+    String formatRequestBody(bool ranged, String uri, int64 startLine,
+            int64 startCharacter, int64 endLine, int64 endCharacter)
+    FormatEdit readSelection(EditorDocument document)
+    void requestFormat(EditorDocument document, bool ranged)
+    void applyFormatEdits(EditorDocument document, list edits)
+    void applyFormatResult(EditorDocument document, String body,
+            int64 resultAt)
+    bool acceptFormat(String body)
 }

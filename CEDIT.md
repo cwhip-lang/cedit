@@ -171,9 +171,14 @@ existing path. Untitled documents stay unsaved without opening Save As dialogs;
 the status line reports the saved and skipped counts, or a save failure.
 
 **Edit** offers Undo, Redo, Cut, Copy, Paste, Select All, Find, Replace,
-Strip Trailing Spaces, and Preferences. **Strip Trailing Spaces** removes
+Strip Trailing Spaces, Format Document, Format Selection, and Preferences.
+**Strip Trailing Spaces** removes
 trailing spaces and tabs from the active buffer without saving it; it has no
-default shortcut.
+default shortcut. **Format Document** (`format`) and **Format Selection**
+(`format-selection`) also have no default shortcut. Format Document asks the
+language server to format the whole buffer. Format Selection asks it to
+format the current selection, and leaves the buffer unchanged when nothing
+is selected.
 Find and Replace open a separate, non-modal window transient for the editor.
 The Find window contains the query and Find next; Replace adds the replacement
 field and Replace next / Replace all. Closing the window hides it and preserves
@@ -306,6 +311,19 @@ underlines it, tints the background, and shows the message on mouseover. The
 status line only notes the count (never the full messages), so the window size
 does not change when they appear. Restart the command by editing the preference;
 it is saved with the other editor settings.
+
+**Edit > Format Document** sends `textDocument/formatting` for the current
+buffer. **Edit > Format Selection** sends `textDocument/rangeFormatting` for
+the selection. The client flushes pending edits first, so the server formats
+the text it has stored. A successful result is one or more text edits applied
+in one undo step. An empty result leaves the buffer unchanged. The client
+reads `documentFormattingProvider` and `documentRangeFormattingProvider` from
+the initialize result (a boolean or an options object). When the provider is
+missing or false, or the server answers the request with an error such as
+`method not found`, the buffer is left unchanged and the status line reports
+the failure the same way as other language-server failures
+(`Language server ...`). A file the server does not handle, including an
+untitled buffer, is reported the same way and is not sent.
 
 ## View
 
