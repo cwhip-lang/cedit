@@ -1,5 +1,6 @@
 /*
- * src/cwhipProject.cw - CwhipProject config/workspace parse and validate.
+ * src/cwhipProject.cw — CwhipProject config parse and validate.
+ * Workspace methods are in cwhipProjectWorkspace.cw.
  *
  * Created: 2026-10-29
  * Author: Auto
@@ -8,10 +9,14 @@
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-14  Public members for private-by-default cwhip.
+ *   2026-11-15  Apply the revised coding standard.
+ *   2026-11-15  Move workspace methods to cwhipProjectWorkspace.cw.
  */
 
 /*
- * CwhipProject for cedit; see method comments below.
+ * The open Cwhip project: .cwhip paths, project.toml settings, and
+ * workspace.toml tabs. The editor loads, checks, and writes that
+ * metadata through this object.
  */
 class CwhipProject {
     public:
@@ -73,7 +78,9 @@ class CwhipProject {
         configPath = System.FileSystem().join(directory, "project.toml")
         workspacePath = System.FileSystem().join(directory, "workspace.toml")
         name = System.FileSystem().basename(root)
-        if (name.equals("") || name.length > 128) { name = "Project" }
+        if (name.equals("") || name.length > 128) {
+            name = "Project"
+        }
         excludes = []
         original = ""
         base = ""
@@ -100,7 +107,8 @@ class CwhipProject {
     /*
      * resetWorkspace
      *
-     * Purpose: resetWorkspace for the editor.
+     * Purpose: Clear the active path, window sizes, expanded folders, and
+     * open files so the workspace is empty.
      *
      * Parameters:
      *   none.
@@ -120,16 +128,19 @@ class CwhipProject {
     /*
      * error
      *
-     * Purpose: error for the editor.
+     * Purpose: Append message to the config errors and mark the project
+     * configuration unwritable.
      *
      * Parameters:
-     *   message.
+     *   message — problem text to record.
      *
      * Returns: nothing.
      */
 
     void error(String message) {
-        if (!errors.equals("")) { errors.append("\n") }
+        if (!errors.equals("")) {
+            errors.append("\n")
+        }
         errors.append(message)
         writable = false
     }
@@ -137,16 +148,19 @@ class CwhipProject {
     /*
      * workspaceError
      *
-     * Purpose: workspaceError for the editor.
+     * Purpose: Append message, mark the workspace unwritable, and clear
+     * any workspace state already parsed.
      *
      * Parameters:
-     *   message.
+     *   message — problem text to record.
      *
      * Returns: nothing.
      */
 
     void workspaceError(String message) {
-        if (!workspaceErrors.equals("")) { workspaceErrors.append("\n") }
+        if (!workspaceErrors.equals("")) {
+            workspaceErrors.append("\n")
+        }
         workspaceErrors.append(message)
         workspaceWritable = false
         resetWorkspace()
@@ -155,16 +169,18 @@ class CwhipProject {
     /*
      * prefix
      *
-     * Purpose: prefix for the editor.
+     * Purpose: Return the project root with a trailing slash.
      *
      * Parameters:
      *   none.
      *
-     * Returns: String.
+     * Returns: the root, with a slash added when it was missing.
      */
 
     String prefix() {
-        if (root.endsWith("/")) { return(root) }
+        if (root.endsWith("/")) {
+            return(root)
+        }
         return(format("{}/", root))
     }
 
@@ -172,77 +188,102 @@ class CwhipProject {
     /*
      * relative
      *
-     * Purpose: relative for the editor.
+     * Purpose: Return the part of path below the project root. The root
+     * itself, outside paths, and invalid remainders yield "".
      *
      * Parameters:
-     *   path.
+     *   path — absolute path to measure against the root.
      *
-     * Returns: String.
+     * Returns: the root-relative path, or "" when it does not apply.
      */
 
     String relative(String path) {
         String head = prefix()
-        if (!path.startsWith(head) || path.length == head.length) { return("") }
+        if (!path.startsWith(head) || path.length == head.length) {
+            return("")
+        }
         String rest = byteSpan(path, head.length, path.length)
-        if (!validRelative(rest)) { return("") }
+        if (!validRelative(rest)) {
+            return("")
+        }
         return(rest)
     }
 
     /*
      * hasControl
      *
-     * Purpose: hasControl for the editor.
+     * Purpose: Report whether text contains a newline, carriage return,
+     * or tab.
      *
      * Parameters:
-     *   text.
+     *   text — string to scan.
      *
-     * Returns: bool.
+     * Returns: true when one of those characters is present.
      */
 
     bool hasControl(String text) {
-        return(text.contains("\n") || text.contains("\r") || text.contains("\t"))
+        return(
+                text.contains("\n") || text.contains("\r") || text.contains(
+                "\t"))
     }
 
     /*
      * validRelative
      *
-     * Purpose: validRelative for the editor.
+     * Purpose: Accept a non-empty root-relative path of at most 4096 bytes.
+     * A leading slash, control characters, or empty or dot segments fail.
      *
      * Parameters:
-     *   path.
+     *   path — candidate relative path.
      *
-     * Returns: bool.
+     * Returns: true when path is safe to store under the root.
      */
 
     bool validRelative(String path) {
-        if (path.equals("") || path.length > 4096 || path.startsWith("/") || hasControl(path)) { return(false) }
+        if (path.equals("") || path.length > 4096 || path.startsWith("/")
+                || hasControl(
+                path)) {
+            return(false)
+        }
         list parts = path.split("/")
         int64 i = 0
         while (i < parts.length) {
             String part = parts[i] as String
-            if (part.equals("") || part.equals(".") || part.equals("..")) { return(false) }
+            if (part.equals("") || part.equals(".") || part.equals("..")) {
+                return(false)
+            }
             i = i + 1
         }
         return(true)
     }
 
-    // Absolute file path that is not inside this project. `.` and `..` segments are rejected.
+    // Absolute file path that is not inside this project. `.` and `..` segments
+    // are rejected.
     /*
      * validExternal
      *
-     * Purpose: validExternal for the editor.
+     * Purpose: Accept an absolute file outside this project. Dot segments,
+     * a trailing slash, control characters, or length over 4096 fail.
      *
      * Parameters:
-     *   path.
+     *   path — absolute path to test.
      *
-     * Returns: bool.
+     * Returns: true when path may be stored as an external file.
      */
 
     bool validExternal(String path) {
-        if (!path.startsWith("/") || path.equals("/") || path.length > 4096 || hasControl(path)) { return(false) }
-        if (path.equals(root) || !relative(path).equals("")) { return(false) }
+        if (!path.startsWith("/") || path.equals("/") || path.length > 4096
+                || hasControl(
+                path)) {
+            return(false)
+        }
+        if (path.equals(root) || !relative(path).equals("")) {
+            return(false)
+        }
         String body = byteSpan(path, 1, path.length)
-        if (body.endsWith("/")) { return(false) }
+        if (body.endsWith("/")) {
+            return(false)
+        }
         return(validRelative(body))
     }
 
@@ -251,27 +292,34 @@ class CwhipProject {
     /*
      * acceptWorkspacePath
      *
-     * Purpose: acceptWorkspacePath for the editor.
+     * Purpose: Accept stored and remember the kept form in acceptedPath.
+     * An absolute path inside the root is stored root-relative.
      *
      * Parameters:
-     *   stored.
+     *   stored — path text from workspace.toml.
      *
-     * Returns: bool.
+     * Returns: true when the path is accepted.
      */
 
     bool acceptWorkspacePath(String stored) {
         acceptedPath = ""
+
         if (stored.startsWith("/")) {
             String rel = relative(stored)
             if (!rel.equals("")) {
                 acceptedPath = rel
                 return(true)
             }
-            if (!validExternal(stored)) { return(false) }
+            if (!validExternal(stored)) {
+                return(false)
+            }
             acceptedPath = stored
             return(true)
         }
-        if (!validRelative(stored)) { return(false) }
+
+        if (!validRelative(stored)) {
+            return(false)
+        }
         acceptedPath = stored
         return(true)
     }
@@ -279,17 +327,19 @@ class CwhipProject {
     /*
      * nameError
      *
-     * Purpose: nameError for the editor.
+     * Purpose: Require 1-128 characters and no newline, return, or tab.
+     * Whitespace-only text is rejected.
      *
      * Parameters:
-     *   text.
+     *   text — candidate project name.
      *
-     * Returns: String.
+     * Returns: "" when the name is usable, otherwise the error message.
      */
 
     String nameError(String text) {
         if (text.trim().equals("") || text.length > 128 || hasControl(text)) {
-            return("Project name must be 1-128 characters, without control characters")
+            return(
+                    "Project name must be 1-128 characters, without control characters")
         }
         return("")
     }
@@ -297,20 +347,26 @@ class CwhipProject {
     /*
      * excludeError
      *
-     * Purpose: excludeError for the editor.
+     * Purpose: Require 1-256 characters, no controls, and a relative shape.
+     * Leading or trailing slashes and empty or dot segments fail.
      *
      * Parameters:
-     *   pattern.
+     *   pattern — candidate exclusion pattern.
      *
-     * Returns: String.
+     * Returns: "" when the pattern is usable, otherwise the error.
      */
 
     String excludeError(String pattern) {
-        if (pattern.trim().equals("") || pattern.length > 256 || hasControl(pattern)) {
-            return("Exclusion patterns must be 1-256 characters, without control characters")
+        if (pattern.trim().equals("") || pattern.length > 256 || hasControl(
+                pattern)) {
+            return(
+                    "Exclusion patterns must be 1-256 characters, without control characters")
         }
-        if (pattern.startsWith("/") || pattern.endsWith("/") || !validRelative(pattern)) {
-            return(format("Invalid exclusion pattern {}: use a name or root-relative path without leading/trailing /, ., or .. segments", pattern))
+        if (pattern.startsWith("/") || pattern.endsWith("/") || !validRelative(
+                pattern)) {
+            return(format(
+                    "Invalid exclusion pattern {}: use a name or root-relative path without leading/trailing /, ., or .. segments",
+                    pattern))
         }
         return("")
     }
@@ -320,41 +376,57 @@ class CwhipProject {
     /*
      * metadataProblem
      *
-     * Purpose: metadataProblem for the editor.
+     * Purpose: Allow a missing .cwhip directory. An existing one must be
+     * a real directory, and existing toml files must be regular.
      *
      * Parameters:
      *   none.
      *
-     * Returns: String.
+     * Returns: "" when the metadata paths are usable, otherwise the problem.
      */
 
     String metadataProblem() {
-        if (!System.FileSystem().exists(directory)) { return("") }
+        if (!System.FileSystem().exists(directory)) {
+            return("")
+        }
         if (!System.FileSystem().isDir(directory) ||
-            !System.FileSystem().absolutePath(directory).equals(directory)) {
-            return(format("{} must be a real directory, not a file or symbolic link", directory))
+            !System.FileSystem().absolutePath(
+                directory).equals(
+                directory)) {
+            return(format(
+                    "{} must be a real directory, not a file or symbolic link",
+                    directory))
         }
         String problem = fileProblem(configPath)
-        if (problem.equals("")) { problem = fileProblem(workspacePath) }
+        if (problem.equals("")) {
+            problem = fileProblem(workspacePath)
+        }
         return(problem)
     }
 
     /*
      * fileProblem
      *
-     * Purpose: fileProblem for the editor.
+     * Purpose: Allow a missing file. Otherwise require a regular file at
+     * that exact path, not a symbolic link.
      *
      * Parameters:
-     *   path.
+     *   path — metadata file to check.
      *
-     * Returns: String.
+     * Returns: "" when missing or regular, otherwise a problem message.
      */
 
     String fileProblem(String path) {
-        if (!System.FileSystem().exists(path)) { return("") }
+        if (!System.FileSystem().exists(path)) {
+            return("")
+        }
         if (!System.FileSystem().isFile(path) ||
-            !System.FileSystem().absolutePath(path).equals(path)) {
-            return(format("{} must be a regular file, not a symbolic link", path))
+            !System.FileSystem().absolutePath(
+                path).equals(
+                path)) {
+            return(format(
+                    "{} must be a regular file, not a symbolic link",
+                    path))
         }
         return("")
     }
@@ -364,13 +436,14 @@ class CwhipProject {
     /*
      * readMetadata
      *
-     * Purpose: readMetadata for the editor.
+     * Purpose: Read up to limit bytes and set readMissing, readContent,
+     * and readError. Malformed text is still returned with readError set.
      *
      * Parameters:
-     *   path.
-     *   limit.
+     *   path — metadata file to read.
+     *   limit — maximum file size in bytes.
      *
-     * Returns: String.
+     * Returns: the file text when bytes were read, or "" otherwise.
      */
 
     String readMetadata(String path, int64 limit) {
@@ -386,88 +459,115 @@ class CwhipProject {
             readError = format("Could not read {}: {}", path, presence)
             return("")
         }
-        if (!System.FileSystem().isFile(path) || System.FileSystem().fileSize(path) > limit) {
-            readError = format("{} must be a regular file no larger than {} KiB", path, limit / 1024)
+        if (!System.FileSystem().isFile(path) || System.FileSystem().fileSize(
+                path) > limit) {
+            readError = format(
+                    "{} must be a regular file no larger than {} KiB", path,
+                    limit / 1024)
             return("")
         }
         System.File file = null
         try {
             file = System.File(path, "r")
-        } except(Exception) {
-            readError = format("Could not read {}: {}", path, System.System().lastError())
+        }
+        except(Exception) {
+            readError = format("Could not read {}: {}", path, System.System(
+                    ).lastError())
             return("")
         }
         String text = ""
-        try { text = file.readAll() }
-        except(Exception) as failure { readError = format("Could not read {}: {}", path, failure.message) }
+        try {
+            text = file.readAll()
+        }
+        except(Exception) as failure {
+            readError = format("Could not read {}: {}", path, failure.message)
+        }
         String lastError = System.System().lastError()
         file.close()
         if (readError.equals("") && !lastError.equals("")) {
             readError = format("Could not read {}: {}", path, lastError)
         }
-        if (!readError.equals("")) { return("") }
+        if (!readError.equals("")) {
+            return("")
+        }
         readContent = true
         if (!GtkSource.Content().isText(text)) {
             readError = format("Malformed {}: not UTF-8 text", path)
             return(text)
         }
         String malformed = Gtk.Config().validate(text)
-        if (!malformed.equals("")) { readError = format("Malformed TOML in {}: {}", path, malformed) }
+        if (!malformed.equals("")) {
+            readError = format("Malformed TOML in {}: {}", path, malformed)
+        }
         return(text)
     }
 
     /*
      * value
      *
-     * Purpose: value for the editor.
+     * Purpose: Look up section and key in the loaded project text.
      *
      * Parameters:
-     *   section.
-     *   key.
+     *   section — table name; "" selects the document root.
+     *   key — name inside that table.
      *
-     * Returns: String.
+     * Returns: the config value, or "" when the key is absent.
      */
 
-    String value(String section, String key) { return(Gtk.Config().value(base, section, key)) }
+    String value(String section, String key) {
+        return(Gtk.Config().value(base, section, key))
+    }
 
     /*
      * table
      *
-     * Purpose: table for the editor.
+     * Purpose: Record an error when a top-level key is present but is not
+     * a table.
      *
      * Parameters:
-     *   text.
-     *   key.
+     *   text — TOML document to inspect.
+     *   key — top-level name that should be a table.
      *
      * Returns: nothing.
      */
 
     void table(String text, String key) {
         String kind = Gtk.Config().value(text, "", key)
-        if (!kind.equals("") && !kind.equals("t")) { error(format("{} must be a table", key)) }
+        if (!kind.equals("") && !kind.equals("t")) {
+            error(format("{} must be a table", key))
+        }
     }
 
     /*
      * integer
      *
-     * Purpose: integer for the editor.
+     * Purpose: Read an editor integer inside the given range. A bad value
+     * calls error() and returns -1; an absent key returns -1.
      *
      * Parameters:
-     *   key.
-     *   minimum.
-     *   maximum.
+     *   key — name under the editor table.
+     *   minimum — smallest accepted value.
+     *   maximum — largest accepted value.
      *
-     * Returns: int64.
+     * Returns: the integer, or -1 when absent or invalid.
      */
 
     int64 integer(String key, int64 minimum, int64 maximum) {
         String raw = value("editor", key)
-        if (raw.equals("")) { return(-1) }
+        if (raw.equals("")) {
+            return(-1)
+        }
         if (raw.startsWith("i")) {
             int64 number = byteSpan(raw, 1, raw.length).toInt64()
-            if (number >= minimum && number <= maximum) { return(number) }
+            if (number >= minimum && number <= maximum) {
+                return(number)
+            }
         }
-        error(format("editor.{} must be an integer from {} to {}", key, minimum, maximum))
+        error(format(
+                "editor.{} must be an integer from {} to {}",
+                key,
+                minimum,
+                maximum))
         return(-1)
     }
 
@@ -475,19 +575,26 @@ class CwhipProject {
     /*
      * boolean
      *
-     * Purpose: boolean for the editor.
+     * Purpose: Read an editor boolean: 1 true, 0 false, or -1 to inherit.
+     * Invalid text calls error(); an absent key does not.
      *
      * Parameters:
-     *   key.
+     *   key — name under the editor table.
      *
-     * Returns: int64.
+     * Returns: 1 for true, 0 for false, or -1 to inherit.
      */
 
     int64 boolean(String key) {
         String raw = value("editor", key)
-        if (raw.equals("")) { return(-1) }
-        if (raw.equals("btrue")) { return(1) }
-        if (raw.equals("bfalse")) { return(0) }
+        if (raw.equals("")) {
+            return(-1)
+        }
+        if (raw.equals("btrue")) {
+            return(1)
+        }
+        if (raw.equals("bfalse")) {
+            return(0)
+        }
         error(format("editor.{} must be a boolean", key))
         return(-1)
     }
@@ -497,72 +604,126 @@ class CwhipProject {
     /*
      * load
      *
-     * Purpose: load for the editor.
+     * Purpose: Load project.toml and editor overrides, then the workspace.
+     * Per-field problems stay recorded and make the config unwritable.
      *
      * Parameters:
-     *   settings.
+     *   settings — preferences used to check a font override.
      *
-     * Returns: String.
+     * Returns: "" when the project can be opened, otherwise a fatal message.
      */
 
     String load(CeditSettings settings) {
         String problem = metadataProblem()
-        if (!problem.equals("")) { return(problem) }
+        if (!problem.equals("")) {
+            return(problem)
+        }
         original = readMetadata(configPath, 65536)
-        if (readMissing) { return(format("No Cwhip project in {} (missing {}/project.toml); use Project > New Project... to create one", root, directory)) }
-        if (!readError.equals("")) { return(readError) }
+        if (readMissing) {
+            return(format(
+                    "No Cwhip project in {} (missing {}/project.toml); use Project > New Project... to create one",
+                    root,
+                    directory))
+        }
+        if (!readError.equals("")) {
+            return(readError)
+        }
         base = original
         if (!value("", "version").equals("i1")) {
-            return(format("Unsupported project version in {}: expected version = 1", configPath))
+            return(format(
+                    "Unsupported project version in {}: expected version = 1",
+                    configPath))
         }
         table(base, "project")
         table(base, "explorer")
         table(base, "editor")
+
         String raw = value("project", "name")
         if (!raw.equals("")) {
-            if (!raw.startsWith("s")) { error("project.name must be a string") }
+
+            if (!raw.startsWith("s")) {
+                error("project.name must be a string")
+            }
             else {
                 String text = byteSpan(raw, 1, raw.length)
                 String nameProblem = nameError(text)
-                if (nameProblem.equals("")) { name = text } else { error(nameProblem) }
+                if (nameProblem.equals("")) {
+                    name = text
+                }
+                else {
+                    error(nameProblem)
+                }
             }
+
         }
+
         raw = value("explorer", "exclude")
+
         if (!raw.equals("")) {
-            if (!raw.equals("x")) { error("explorer.exclude must be an array of strings") }
+
+            if (!raw.equals("x")) {
+                error("explorer.exclude must be an array of strings")
+            }
             else {
+
                 int64 i = 0
-                String item = Gtk.Config().item(base, "explorer", "exclude", 0, "")
+                String item = Gtk.Config().item(base, "explorer", "exclude", 0,
+                        "")
                 while (!item.equals("")) {
-                    if (!item.startsWith("s")) { error("explorer.exclude must be an array of strings") }
+
+                    if (!item.startsWith("s")) {
+                        error("explorer.exclude must be an array of strings")
+                    }
                     else {
                         String pattern = byteSpan(item, 1, item.length)
                         String patternProblem = excludeError(pattern)
-                        if (patternProblem.equals("")) { excludes.append(pattern) } else { error(patternProblem) }
+                        if (patternProblem.equals("")) {
+                            excludes.append(pattern)
+                        }
+                        else {
+                            error(patternProblem)
+                        }
                     }
+
                     i = i + 1
                     item = Gtk.Config().item(base, "explorer", "exclude", i, "")
                 }
+
             }
+
         }
+
         raw = value("editor", "font_family")
+
         if (!raw.equals("")) {
-            if (!raw.startsWith("s")) { error("editor.font_family must be a string") }
+
+            if (!raw.startsWith("s")) {
+                error("editor.font_family must be a string")
+            }
             else {
                 String font = byteSpan(raw, 1, raw.length)
                 String fontProblem = settings.fontError(font)
                 if (fontProblem.equals("")) {
                     hasFont = true
                     fontFamily = font
-                } else { error(format("editor.font_family: {}", fontProblem)) }
+                }
+                else {
+                    error(format("editor.font_family: {}", fontProblem))
+                }
             }
+
         }
+
         int64 number = integer("font_size", 6, 72)
         hasSize = number > 0
-        if (hasSize) { fontSize = number }
+        if (hasSize) {
+            fontSize = number
+        }
         number = integer("tab_width", 1, 16)
         hasTabs = number > 0
-        if (hasTabs) { tabWidth = number }
+        if (hasTabs) {
+            tabWidth = number
+        }
         number = boolean("insert_spaces")
         hasSpaces = number >= 0
         insertSpaces = number == 1
@@ -579,351 +740,18 @@ class CwhipProject {
         return("")
     }
 
-    /*
-     * loadWorkspace
-     *
-     * Purpose: loadWorkspace for the editor.
-     *
-     * Parameters:
-     *   none.
-     *
-     * Returns: nothing.
-     */
-
-    void loadWorkspace() {
-        workspaceOriginal = readMetadata(workspacePath, 1048576)
-        if (readMissing) {
-            workspaceOriginal = ""
-            return
-        }
-        if (!readError.equals("")) {
-            workspaceError(readError)
-            return
-        }
-        String problem = parseWorkspace(workspaceOriginal)
-        if (!problem.equals("")) { workspaceError(problem) }
-    }
-
-    /*
-     * wsInteger
-     *
-     * Purpose: wsInteger for the editor.
-     *
-     * Parameters:
-     *   text.
-     *   key.
-     *   minimum.
-     *   maximum.
-     *
-     * Returns: String.
-     */
-
-    String wsInteger(String text, String key, int64 minimum, int64 maximum) {
-        String raw = Gtk.Config().value(text, "workspace", key)
-        if (raw.equals("")) { return("") }
-        if (raw.startsWith("i")) {
-            int64 number = byteSpan(raw, 1, raw.length).toInt64()
-            if (number >= minimum && number <= maximum) { return(format("{}", number)) }
-        }
-        return(format("workspace.{} must be an integer from {} to {}", key, minimum, maximum))
-    }
-
-    /*
-     * wsNumber
-     *
-     * Purpose: wsNumber for the editor.
-     *
-     * Parameters:
-     *   text.
-     *   key.
-     *
-     * Returns: int64.
-     */
-
-    int64 wsNumber(String text, String key) {
-        String raw = Gtk.Config().value(text, "workspace", key)
-        if (raw.equals("")) { return(-1) }
-        return(byteSpan(raw, 1, raw.length).toInt64())
-    }
-
-    // Parses workspace TOML; returns "" or the first problem. Any problem
-    // discards the whole workspace rather than restoring part of it.
-    /*
-     * parseWorkspace
-     *
-     * Purpose: parseWorkspace for the editor.
-     *
-     * Parameters:
-     *   text.
-     *
-     * Returns: String.
-     */
-
-    String parseWorkspace(String text) {
-        resetWorkspace()
-        if (!Gtk.Config().value(text, "", "version").equals("i1")) {
-            return(format("Unsupported workspace version in {}: expected version = 1", workspacePath))
-        }
-        String kind = Gtk.Config().value(text, "", "workspace")
-        if (kind.equals("")) { return("") }
-        if (!kind.equals("t")) { return("workspace must be a table") }
-        String raw = Gtk.Config().value(text, "workspace", "active")
-        if (!raw.equals("")) {
-            if (!raw.startsWith("s") || !acceptWorkspacePath(byteSpan(raw, 1, raw.length))) {
-                return("workspace.active must be a path inside the project or an absolute path outside it")
-            }
-            active = acceptedPath
-        }
-        // wsInteger yields digits when valid; messages always contain spaces.
-        String problem = wsInteger(text, "explorer_width", 0, 5000)
-        if (problem.contains(" ")) { return(problem) }
-        problem = wsInteger(text, "window_width", 200, 10000)
-        if (problem.contains(" ")) { return(problem) }
-        problem = wsInteger(text, "window_height", 150, 10000)
-        if (problem.contains(" ")) { return(problem) }
-        explorerWidth = wsNumber(text, "explorer_width")
-        windowWidth = wsNumber(text, "window_width")
-        windowHeight = wsNumber(text, "window_height")
-        raw = Gtk.Config().value(text, "workspace", "expanded")
-        if (!raw.equals("") && !raw.equals("x")) { return("workspace.expanded must be an array of paths") }
-        int64 i = 0
-        String item = Gtk.Config().item(text, "workspace", "expanded", 0, "")
-        while (!item.equals("")) {
-            if (!item.startsWith("s") || !validRelative(byteSpan(item, 1, item.length))) {
-                resetWorkspace()
-                return("workspace.expanded must contain root-relative paths")
-            }
-            expanded.append(byteSpan(item, 1, item.length))
-            i = i + 1
-            item = Gtk.Config().item(text, "workspace", "expanded", i, "")
-        }
-        raw = Gtk.Config().value(text, "workspace", "files")
-        if (!raw.equals("") && !raw.equals("x")) { return("workspace.files must be an array of tables") }
-        i = 0
-        item = Gtk.Config().item(text, "workspace", "files", 0, "")
-        while (!item.equals("")) {
-            String path = Gtk.Config().item(text, "workspace", "files", i, "path")
-            String line = Gtk.Config().item(text, "workspace", "files", i, "line")
-            String column = Gtk.Config().item(text, "workspace", "files", i, "column")
-            if (!item.equals("t") || !path.startsWith("s") ||
-                !acceptWorkspacePath(byteSpan(path, 1, path.length)) ||
-                !validPosition(line) || !validPosition(column)) {
-                resetWorkspace()
-                return("workspace.files entries must be tables with a path inside the project or an absolute path outside it, and a positive line/column")
-            }
-            files.append(WorkspaceFile(acceptedPath, byteSpan(line, 1, line.length).toInt64(),
-                byteSpan(column, 1, column.length).toInt64()))
-            i = i + 1
-            item = Gtk.Config().item(text, "workspace", "files", i, "")
-        }
-        return("")
-    }
-
-    /*
-     * validPosition
-     *
-     * Purpose: validPosition for the editor.
-     *
-     * Parameters:
-     *   raw.
-     *
-     * Returns: bool.
-     */
-
-    bool validPosition(String raw) {
-        if (!raw.startsWith("i")) { return(false) }
-        int64 number = byteSpan(raw, 1, raw.length).toInt64()
-        return(number >= 1 && number <= 100000000)
-    }
-
-    /*
-     * quotedList
-     *
-     * Purpose: quotedList for the editor.
-     *
-     * Parameters:
-     *   values.
-     *
-     * Returns: String.
-     */
-
-    String quotedList(list values) {
-        String text = "["
-        int64 i = 0
-        while (i < values.length) {
-            if (i > 0) { text.append(", ") }
-            text.append(Gtk.Config().quote(values[i] as String))
-            i = i + 1
-        }
-        text.append("]")
-        return(text)
-    }
-
-    /*
-     * excludeLines
-     *
-     * Purpose: excludeLines for the editor.
-     *
-     * Parameters:
-     *   none.
-     *
-     * Returns: String.
-     */
-
-    String excludeLines() {
-        String text = ""
-        int64 i = 0
-        while (i < excludes.length) {
-            if (i > 0) { text.append("\n") }
-            text.append(excludes[i] as String)
-            i = i + 1
-        }
-        return(text)
-    }
-
-    // Keeps unknown keys from the merge base; removed overrides fall back to
-    // inheritance by deleting their keys.
-    /*
-     * serialize
-     *
-     * Purpose: Serialize settings and save via Gtk.Config when the on-disk text still matches.
-     *
-     * Parameters:
-     *   none.
-     *
-     * Returns: String.
-     */
-
-    String serialize() {
-        String text = base
-        if (text.equals("")) { text = "version = 1\n" }
-        if (!hasFont) { text = Gtk.Config().remove(text, "editor", "font_family") }
-        if (!hasSize) { text = Gtk.Config().remove(text, "editor", "font_size") }
-        if (!hasTabs) { text = Gtk.Config().remove(text, "editor", "tab_width") }
-        if (!hasSpaces) { text = Gtk.Config().remove(text, "editor", "insert_spaces") }
-        if (!hasNumbers) { text = Gtk.Config().remove(text, "editor", "line_numbers") }
-        if (!hasWrap) { text = Gtk.Config().remove(text, "editor", "wrap") }
-        if (!hasHighlight) { text = Gtk.Config().remove(text, "editor", "highlight_current_line") }
-        String updates = format("version = 1\n[project]\nname = {}\n[explorer]\nexclude = {}\n",
-            Gtk.Config().quote(name), quotedList(excludes))
-        String editor = ""
-        if (hasFont) { editor.append(format("font_family = {}\n", Gtk.Config().quote(fontFamily))) }
-        if (hasSize) { editor.append(format("font_size = {}\n", fontSize)) }
-        if (hasTabs) { editor.append(format("tab_width = {}\n", tabWidth)) }
-        if (hasSpaces) { editor.append(format("insert_spaces = {}\n", insertSpaces)) }
-        if (hasNumbers) { editor.append(format("line_numbers = {}\n", lineNumbers)) }
-        if (hasWrap) { editor.append(format("wrap = {}\n", wrap)) }
-        if (hasHighlight) { editor.append(format("highlight_current_line = {}\n", highlightLine)) }
-        if (!editor.equals("")) {
-            updates.append("[editor]\n")
-            updates.append(editor)
-        }
-        return(Gtk.Config().merge(text, updates))
-    }
-
-    // Copies configuration (including unknown keys) for Save As.
-    /*
-     * copyConfiguration
-     *
-     * Purpose: copyConfiguration for the editor.
-     *
-     * Parameters:
-     *   source.
-     *
-     * Returns: nothing.
-     */
-
-    void copyConfiguration(CwhipProject source) {
-        base = source.base
-        name = source.name
-        excludes = []
-        int64 i = 0
-        while (i < source.excludes.length) {
-            excludes.append(source.excludes[i] as String)
-            i = i + 1
-        }
-        hasFont = source.hasFont
-        fontFamily = source.fontFamily
-        hasSize = source.hasSize
-        fontSize = source.fontSize
-        hasTabs = source.hasTabs
-        tabWidth = source.tabWidth
-        hasSpaces = source.hasSpaces
-        insertSpaces = source.insertSpaces
-        hasNumbers = source.hasNumbers
-        lineNumbers = source.lineNumbers
-        hasWrap = source.hasWrap
-        wrap = source.wrap
-        hasHighlight = source.hasHighlight
-        highlightLine = source.highlightLine
-    }
-
-    /*
-     * overrideSummary
-     *
-     * Purpose: overrideSummary for the editor.
-     *
-     * Parameters:
-     *   none.
-     *
-     * Returns: String.
-     */
-
-    String overrideSummary() {
-        list names = []
-        if (hasFont) { names.append("font family") }
-        if (hasSize) { names.append("font size") }
-        if (hasTabs) { names.append("tab width") }
-        if (hasSpaces) { names.append("insert spaces") }
-        if (hasNumbers) { names.append("line numbers") }
-        if (hasWrap) { names.append("wrap") }
-        if (hasHighlight) { names.append("highlight current line") }
-        String text = ""
-        int64 i = 0
-        while (i < names.length) {
-            if (i > 0) { text.append(", ") }
-            text.append(names[i] as String)
-            i = i + 1
-        }
-        return(text)
-    }
-
-    /*
-     * byteSpanBound
-     *
-     * Purpose: extract substrings for goto-line parsing and recovery
-     *
-     * Parameters:
-     *   value.
-     *   length.
-     *
-     * Returns: int64.
-     */
-
-    int64 byteSpanBound(int64 value, int64 length) {
-        int64 index = value
-        if (index < 0) { index = index + length }
-        if (index < 0) { return(0) }
-        if (index > length) { return(length) }
-        return(index)
-    }
-    /*
-     * byteSpan
-     *
-     * Purpose: byteSpan for the editor.
-     *
-     * Parameters:
-     *   text.
-     *   first.
-     *   last.
-     *
-     * Returns: String.
-     */
-
-    String byteSpan(String text, int64 first, int64 last) {
-        int64 lower = byteSpanBound(first, text.length)
-        int64 end = byteSpanBound(last, text.length)
-        if (end <= lower) { return("") }
-        return(text[lower..(end - 1)])
-    }
+    void loadWorkspace()
+    String wsInteger(String text, String key, int64 minimum, int64 maximum)
+    int64 wsNumber(String text, String key)
+    String parseWorkspace(String text)
+    bool validPosition(String raw)
+    String quotedList(list values)
+    String excludeLines()
+    String serialize()
+    void copyConfiguration(CwhipProject source)
+    String overrideSummary()
+    int64 byteSpanBound(int64 value, int64 length)
+    String byteSpan(String text, int64 first, int64 last)
 }
+
+include "cwhipProjectWorkspace.cw"

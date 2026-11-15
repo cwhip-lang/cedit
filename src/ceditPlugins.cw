@@ -7,6 +7,7 @@
  * Changelog:
  *   2026-10-30  Initial file.
  *   2026-11-13  CODING headers and method comments.
+ *   2026-11-15  Apply the revised coding standard.
  */
 
 // Trusted in-process plugin hooks. Demos are compile-in until dynamic .cw
@@ -16,25 +17,27 @@
 /*
  * Cedit.registerPlugin
  *
- * Purpose: registerPlugin.
+ * Purpose: Append a plugin id and menu title. An empty id is ignored.
  *
  * Parameters:
- *   id.
- *   title.
+ *   id — plugin command id.
+ *   title — menu label for that command.
  *
  * Returns: nothing.
  */
 
 void Cedit.registerPlugin(String id, String title) {
-        if (id.equals("")) { return }
-        plugins.append(id)
-        pluginTitles.append(title)
+    if (id.equals("")) {
+        return
     }
+    plugins.append(id)
+    pluginTitles.append(title)
+}
 
 /*
  * Cedit.loadBuiltinPlugins
  *
- * Purpose: loadBuiltinPlugins.
+ * Purpose: Clear registered plugins, then add the date and debug demos.
  *
  * Parameters:
  *   none.
@@ -43,16 +46,16 @@ void Cedit.registerPlugin(String id, String title) {
  */
 
 void Cedit.loadBuiltinPlugins() {
-        plugins = []
-        pluginTitles = []
-        registerPlugin("plugin-insert-date", "Insert date/time")
-        registerPlugin("plugin-toggle-debug", "Toggle debug marker")
-    }
+    plugins = []
+    pluginTitles = []
+    registerPlugin("plugin-insert-date", "Insert date/time")
+    registerPlugin("plugin-toggle-debug", "Toggle debug marker")
+}
 
 /*
  * Cedit.pluginInsertDate
  *
- * Purpose: pluginInsertDate.
+ * Purpose: Insert epoch seconds at the caret when a document can be edited.
  *
  * Parameters:
  *   none.
@@ -61,19 +64,27 @@ void Cedit.loadBuiltinPlugins() {
  */
 
 void Cedit.pluginInsertDate() {
-        if (commandsBlocked()) { return }
-        EditorDocument document = currentDocument()
-        if (document == null) { return }
-        String stamp = format("{}", Time.Clock().epochSeconds())
-        document.view.insertText(document.view.line(), document.view.column(), stamp)
-        document.view.focus()
-        status.setText("Plugin: inserted epoch seconds")
+    if (commandsBlocked()) {
+        return
     }
+    EditorDocument document = currentDocument()
+    if (document == null) {
+        return
+    }
+    String stamp = format("{}", Time.Clock().epochSeconds())
+    document.view.insertText(
+            document.view.line(),
+            document.view.column(),
+            stamp)
+    document.view.focus()
+    status.setText("Plugin: inserted epoch seconds")
+}
 
 /*
  * Cedit.pluginToggleDebug
  *
- * Purpose: pluginToggleDebug.
+ * Purpose: Add or remove a "# debug: " prefix on each selected line,
+ * or on the current line when there is no selection.
  *
  * Parameters:
  *   none.
@@ -82,35 +93,40 @@ void Cedit.pluginInsertDate() {
  */
 
 void Cedit.pluginToggleDebug() {
-        if (commandsBlocked()) { return }
-        EditorDocument document = currentDocument()
-        if (document == null) { return }
-        String marker = "# debug: "
-        loadSelectedLineSpan()
-        if (!document.view.hasSelection()) {
-            lineSpanStart = document.view.line()
-            lineSpanEnd = lineSpanStart
-        }
-        document.view.beginUserAction()
-        int64 line = lineSpanStart
-        while (line <= lineSpanEnd) {
-            String text = lineText(document, line)
-            if (text.startsWith(marker)) {
-                document.view.replaceRange(line, 1, line, marker.length + 1, "")
-            } else {
-                document.view.insertText(line, 1, marker)
-            }
-            line = line + 1
-        }
-        document.view.endUserAction()
-        document.view.focus()
-        status.setText("Plugin: toggled debug marker")
+    if (commandsBlocked()) {
+        return
     }
+    EditorDocument document = currentDocument()
+    if (document == null) {
+        return
+    }
+    String marker = "# debug: "
+    loadSelectedLineSpan()
+    if (!document.view.hasSelection()) {
+        lineSpanStart = document.view.line()
+        lineSpanEnd = lineSpanStart
+    }
+    document.view.beginUserAction()
+    int64 line = lineSpanStart
+    while (line <= lineSpanEnd) {
+        String text = lineText(document, line)
+        if (text.startsWith(marker)) {
+            document.view.replaceRange(line, 1, line, marker.length + 1, "")
+        }
+        else {
+            document.view.insertText(line, 1, marker)
+        }
+        line = line + 1
+    }
+    document.view.endUserAction()
+    document.view.focus()
+    status.setText("Plugin: toggled debug marker")
+}
 
 /*
  * Cedit.addPluginMenus
  *
- * Purpose: addPluginMenus.
+ * Purpose: Add a Plugins menu whose items run the registered plugin commands.
  *
  * Parameters:
  *   none.
@@ -119,13 +135,15 @@ void Cedit.pluginToggleDebug() {
  */
 
 void Cedit.addPluginMenus() {
-        if (menu == null) { return }
-        int64 pluginsMenu = menu.addMenu("Plugins")
-        int64 i = 0
-        while (i < plugins.length) {
-            String id = plugins[i] as String
-            String title = pluginTitles[i] as String
-            menu.addItem(pluginsMenu, title, commandAction(id))
-            i = i + 1
-        }
+    if (menu == null) {
+        return
     }
+    int64 pluginsMenu = menu.addMenu("Plugins")
+    int64 i = 0
+    while (i < plugins.length) {
+        String id = plugins[i] as String
+        String title = pluginTitles[i] as String
+        menu.addItem(pluginsMenu, title, commandAction(id))
+        i = i + 1
+    }
+}

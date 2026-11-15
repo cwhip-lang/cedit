@@ -12,6 +12,8 @@
  *   2026-10-29  Split method bodies into included units.
  *   2026-11-13  CODING file header and class comment.
  *   2026-11-14  Public members for private-by-default cwhip.
+ *   2026-11-15  Apply the revised coding standard.
+ *   2026-11-15  Include the preferences window unit.
  */
 
 import gtk
@@ -274,7 +276,8 @@ class Cedit {
     void adoptSettingsRoot(String root)
     void reopenChanged(bool active)
     void persistSettings()
-    // The user config stores only the root locator; workspace state stays with the project.
+    // The user config stores only the root locator; workspace state stays with
+    // the project.
     void rememberProject(String root)
     void forgetProject(String root)
     bool hidePreferences()
@@ -345,7 +348,8 @@ class Cedit {
 
     void openProjectAt(String path)
 
-    // New and Save As create metadata for a chosen root; source files are never touched.
+    // New and Save As create metadata for a chosen root; source files are never
+    // touched.
     void prepareNewProject(String path, bool copy)
 
     void startNewProject(String op)
@@ -361,7 +365,11 @@ class Cedit {
     void continueSwitch(String op)
 
     // Starts guarded asynchronous writes; op runs once all writes finish.
-    void writeProject(CwhipProject target, bool config, bool workspaceState, String op)
+    void writeProject(
+            CwhipProject target,
+            bool config,
+            bool workspaceState,
+            String op)
 
     String projectSaveMessage(String path, String error)
 
@@ -399,7 +407,11 @@ class Cedit {
     String captureWorkspace(String source, String target)
 
     // Root-relative path inside origin, or an absolute path outside it.
-    String storedDocumentPath(CwhipProject origin, String path, String target, bool filter)
+    String storedDocumentPath(
+            CwhipProject origin,
+            String path,
+            String target,
+            bool filter)
 
     void noteOpenFiles()
 
@@ -422,7 +434,8 @@ class Cedit {
     bool hideConfigure()
     void closeConfigure()
 
-    // ---- About ---------------------------------------------------------------
+    // ---- About
+    // ---------------------------------------------------------------
 
     void showAbout()
 
@@ -523,9 +536,17 @@ class Cedit {
     String lineText(EditorDocument document, int64 line)
     bool lineHasCommentPrefix(String text, String prefix)
     void toggleComment()
-    void uncommentLine(EditorDocument document, int64 line, String text, String prefix)
+    void uncommentLine(
+            EditorDocument document,
+            int64 line,
+            String text,
+            String prefix)
     void toggleBlockComment()
-    int64 findMatchingLine(list lines, int64 fromIndex, String target, int64 limit)
+    int64 findMatchingLine(
+            list lines,
+            int64 fromIndex,
+            String target,
+            int64 limit)
     void updateUnsavedMarks(EditorDocument document)
     void clearUnsavedMarks(EditorDocument document)
     void scheduleUnsavedMarks()
@@ -533,11 +554,23 @@ class Cedit {
     void createProjectFind()
     void showProjectFind()
     bool hideProjectFind()
-    bool projectFindMatch(String haystack, String needle, bool caseSensitive, bool wholeWords)
+    bool projectFindMatch(
+            String haystack,
+            String needle,
+            bool caseSensitive,
+            bool wholeWords)
     void appendProjectFindHit(String path, int64 line, String snippet)
-    void scanProjectFindText(String path, String contents, String query, bool caseSensitive,
+    void scanProjectFindText(
+            String path,
+            String contents,
+            String query,
+            bool caseSensitive,
                              bool wholeWords)
-    void scanProjectFindDir(String dir, String query, bool caseSensitive, bool wholeWords,
+    void scanProjectFindDir(
+            String dir,
+            String query,
+            bool caseSensitive,
+            bool wholeWords,
                             bool showHidden)
     void runProjectFind()
     void projectFindActivated(int64 line)
@@ -641,6 +674,7 @@ class Cedit {
 
 include "ceditActivate.cw"
 include "ceditApplyDocumentSettings.cw"
+include "ceditPreferences.cw"
 include "ceditConfirmPreferencesReset.cw"
 include "ceditOpenProjectAt.cw"
 include "ceditCloseAllDocuments.cw"
@@ -656,6 +690,17 @@ include "ceditPlugins.cw"
 include "ceditCloseNextInBatch.cw"
 include "ceditTest.cw"
 
+
+/*
+ * Cedit._self
+ *
+ * Purpose: Return this editor for GTK callbacks that need a receiver.
+ *
+ * Parameters:
+ *   none.
+ *
+ * Returns: this Cedit.
+ */
 
 Cedit Cedit._self() from "cwhip_gtk_self"
 

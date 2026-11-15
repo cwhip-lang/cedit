@@ -8,23 +8,24 @@
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-14  Public members for private-by-default cwhip.
+ *   2026-11-15  Apply the revised coding standard.
  */
 
 /*
- * EditorDocument for cedit; see method comments below.
+ * One notebook tab: a source view, its path, and the text last read
+ * from disk. The editor saves, retitles, and closes this document.
  */
 class EditorDocument {
     public:
     /*
      * _self
      *
-     * Purpose: _self.
+     * Purpose: Return this document so GTK callbacks can use it.
      *
      * Parameters:
-     *   filePath.
-     *   contents.
+     *   none.
      *
-     * Returns: EditorDocument.
+     * Returns: this instance for GTK callbacks.
      */
 
     EditorDocument _self()
@@ -44,13 +45,14 @@ class EditorDocument {
     /*
      * EditorDocument
      *
-     * Purpose: EditorDocument for the editor.
+     * Purpose: Create a monospace source view of contents, marked saved,
+     * and wrap it in the tab scroller. Language follows filePath.
      *
      * Parameters:
-     *   filePath.
-     *   contents.
+     *   filePath — file path, or "" for an untitled buffer.
+     *   contents — initial text, also stored as diskText.
      *
-     * Returns: EditorDocument.
+     * Returns: the new EditorDocument.
      */
 
     EditorDocument(String filePath, String contents) {
@@ -84,10 +86,11 @@ class EditorDocument {
     /*
      * updatePath
      *
-     * Purpose: updatePath for the editor.
+     * Purpose: Replace path and set baseName from its file name. An empty
+     * path clears the base name.
      *
      * Parameters:
-     *   newPath.
+     *   newPath — replacement path, or "" when untitled.
      *
      * Returns: nothing.
      */
@@ -96,7 +99,8 @@ class EditorDocument {
         path = newPath
         if (!path.equals("")) {
             baseName = System.FileSystem().basename(path)
-        } else {
+        }
+        else {
             baseName = ""
         }
     }
@@ -104,7 +108,8 @@ class EditorDocument {
     /*
      * tabTitle
      *
-     * Purpose: Update the notebook page title when the document tab title changed.
+     * Purpose: Update the notebook page title when the document tab title
+     * changed.
      *
      * Parameters:
      *   none.
@@ -125,19 +130,21 @@ class EditorDocument {
     /*
      * stripTrailingSpaces
      *
-     * Purpose: stripTrailingSpaces for the editor.
+     * Purpose: Remove trailing spaces and tabs from the source view.
      *
      * Parameters:
      *   none.
      *
-     * Returns: bool.
+     * Returns: true when any trailing space or tab was removed.
      */
 
-    bool stripTrailingSpaces() { return(view.stripTrailingSpaces()) }
+    bool stripTrailingSpaces() {
+        return(view.stripTrailingSpaces())
+    }
     /*
      * close
      *
-     * Purpose: close for the editor.
+     * Purpose: Call closeAction, passing this document.
      *
      * Parameters:
      *   none.
@@ -145,6 +152,19 @@ class EditorDocument {
      * Returns: nothing.
      */
 
-    void close() { closeAction(_self()) }
+    void close() {
+        closeAction(_self())
+    }
 }
+/*
+ * EditorDocument._self
+ *
+ * Purpose: Return this document for GTK callbacks that need a receiver.
+ *
+ * Parameters:
+ *   none.
+ *
+ * Returns: this EditorDocument.
+ */
+
 EditorDocument EditorDocument._self() from "cwhip_gtk_self"
