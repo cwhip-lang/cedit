@@ -8,6 +8,7 @@
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-14  Public members for private-by-default cwhip.
+ *   2026-11-15  handles() comment: .md is sent when registered as markdown.
  */
 
 /*
@@ -180,7 +181,8 @@ class LanguageClient {
     }
 
     // cwhip-lsp only sees .cw; clangd only C/C++ headers and sources; other
-    // servers skip plain text (empty GtkSource language), including .txt/.md.
+    // servers skip an empty GtkSource language id. .txt stays empty. .md is
+    // markdown when the host specs are registered, and those buffers are sent.
     /*
      * Whether this server should receive events for a path.
      *
