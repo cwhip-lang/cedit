@@ -239,12 +239,19 @@ Paste, and Select All. `<Control><Alt>s` saves all modified named documents,
 and `<Control>comma` opens Preferences. Menus and configurable
 shortcuts resolve to the same named command callbacks.
 
-**Edit > Find in Project…** searches every open document that has a path,
-including paths outside the project root, then walks the project tree. The
-tree walk skips `.git` and `.cedit` even when Show Hidden is on. A file that
-is already open is searched from its buffer rather than from disk, so an open
-file inside the tree can appear twice. The match is literal. There is no
-replace. Activating a hit opens that path and centers the line.
+**Edit > Find in Project…** needs an open folder. With no project root the
+status line says `Open a project folder to search` and open documents are
+not scanned. When a folder is open, the command searches every open document
+that has a path, including paths outside the project root, then walks the
+project tree. The tree walk skips `.git` and `.cedit` even when Show Hidden
+is on. A file that is already open is searched from its buffer rather than
+from disk, so an open file inside the tree can appear twice. The dialog has
+**Case sensitive** and **Whole words**, both off by default, so the default
+match is a case-insensitive substring. Whole words treats only ASCII letters,
+digits, and `_` as word characters. There is no replace and no regular
+expression. The search stops at 500 hits and reports `Results truncated at
+500`; each snippet is cut at 120 characters. Activating a hit opens that
+path and centers the line.
 
 ## Project Explorer
 
@@ -315,8 +322,11 @@ it is saved with the other editor settings.
 **Edit > Format Document** sends `textDocument/formatting` for the current
 buffer. **Edit > Format Selection** sends `textDocument/rangeFormatting` for
 the selection. The client flushes pending edits first, so the server formats
-the text it has stored. A successful result is one or more text edits applied
-in one undo step. An empty result leaves the buffer unchanged. The client
+the text it has stored. Both requests include `options.tabSize` and
+`options.insertSpaces` from the effective tab width and insert-spaces
+setting, including a project override of `tab_width` or `insert_spaces`.
+A successful result is one or more text edits applied in one undo step.
+An empty result leaves the buffer unchanged. The client
 reads `documentFormattingProvider` and `documentRangeFormattingProvider` from
 the initialize result (a boolean or an options object). When the provider is
 missing or false, or the server answers the request with an error such as
@@ -447,9 +457,10 @@ settings: `font_family`, `font_size`, `tab_width`, `insert_spaces`,
 `line_numbers`, `wrap`, and `highlight_current_line`. Configure Project
 offers only those seven. It does not implement project overrides for
 `right_margin`, `auto_indent`, or `show_unsaved_marks`. Those stay user
-settings (right margin 0 hides the guide and defaults to 80; auto-indent and
-unsaved marks default on). If one of them appears in `project.toml`, save
-keeps it as an unknown key and documents do not change. Other unknown keys
+settings (right margin is an integer 0-512; 0 hides the guide and the
+default is 80; auto-indent and unsaved marks default on). If one of them
+appears in `project.toml`, save keeps it as an unknown key and documents do
+not change. Other unknown keys
 are retained the same way.
 
 `.cwhip/workspace.toml` (at most 1 MiB) is local session state:
@@ -551,8 +562,13 @@ The **Editor** page controls an installed monospace font family (or the generic
 `monospace`), font size, tab width, insertion of spaces vs tabs, line numbers,
 wrapping, and current-line highlighting. Font names must be 1-128 UTF-8 bytes
 without control characters; proportional/unknown families are rejected.
-Font size is an integer **6-72 points**, and tab width is an integer **1-16
-columns**. Defaults are `monospace`, 12 pt, 4 columns, spaces, line numbers on,
+Font size is an integer **6-72 points**, tab width is an integer **1-16
+columns**, and right margin is an integer **0-512** (0 hides the guide; the
+default is 80). A `right_margin` outside that range is an error
+(`editor.right_margin must be an integer from 0 to 512`) and the previous
+value is kept. Preferences uses the same 0-512 check and reports
+`Right margin must be an integer from 0 to 512` without applying the field.
+Defaults are `monospace`, 12 pt, 4 columns, spaces, line numbers on,
 wrapping off, and current-line highlighting off. Changing tab width/insertion
 does not rewrite existing indentation.
 
@@ -647,8 +663,9 @@ command IDs (`new`, `open`, `save`, `save-as`, `save-all`, `close`,
 `close-all`, `reload`, `quit`, `find`, `replace`, `find-in-project`,
 `goto-line`, `indent`, `outdent`, `toggle-comment`, `toggle-block-comment`,
 `undo`, `redo`, `cut`, `copy`, `paste`, `select-all`,
-`strip-trailing-spaces`, `preferences`, `project-new`, `project-open`,
-`project-save`, `project-save-as`, `project-delete`, `project-configure`,
+`strip-trailing-spaces`, `format`, `format-selection`, `preferences`,
+`project-new`, `project-open`, `project-save`, `project-save-as`,
+`project-delete`, `project-configure`,
 `project-close`, `view-line-numbers`, `view-whitespace`, `view-line-ends`,
 `view-indent-markers`, `view-project-manager`, `about`,
 `plugin-insert-date`, `plugin-toggle-debug`); omitted IDs use defaults and

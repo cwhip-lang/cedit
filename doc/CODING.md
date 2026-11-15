@@ -311,8 +311,8 @@ not state.
   in the program. GTK harnesses run that smoke path in-process. The
   shared tests rule allows an embedded test when it is unavoidable.
   New automated coverage belongs under `tests/` and goes through CTest.
-- **Method names.** Existing methods keep camelCase (`openFile`,
-  `applyConfigure`). The in-tree harnesses call those names. New
-  methods use `lower_with_underscores`.
+- **Method names.** Methods use camelCase (`openFile`, `applyConfigure`,
+  `formatDocument`, `formatSelection`). The in-tree harnesses call those
+  names.
 - **Plugins.** Built-in plugin hooks stay thin and are compiled in
   until dynamic `.cw` loading exists.
