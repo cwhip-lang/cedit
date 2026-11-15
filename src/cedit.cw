@@ -14,6 +14,7 @@
  *   2026-11-14  Public members for private-by-default cwhip.
  *   2026-11-15  Apply the revised coding standard.
  *   2026-11-15  Include the preferences window unit.
+ *   2026-11-15  Format the current buffer through the language server.
  */
 
 import gtk
@@ -24,6 +25,7 @@ import time
 import cli as Cli
 
 include "language.cw"
+include "languageFormat.cw"
 
 include "commandBinding.cw"
 include "ceditSettings.cw"
@@ -109,6 +111,8 @@ class Cedit {
     int64 redoItem
     int64 cutItem
     int64 copyItem
+    int64 formatItem
+    int64 formatSelectionItem
     int64 newItem
     int64 openItem
     int64 quitItem
@@ -464,6 +468,10 @@ class Cedit {
 
     void stripTrailingSpacesCurrent()
 
+    void formatDocument()
+
+    void formatSelection()
+
     void saveAsCurrent()
 
     bool writeDocument(EditorDocument document, String destination)
@@ -683,6 +691,7 @@ include "ceditWriteDocument.cw"
 include "ceditPrepareSearch.cw"
 include "ceditGotoLine.cw"
 include "ceditEditLines.cw"
+include "ceditFormat.cw"
 include "ceditDirtyMarks.cw"
 include "ceditProjectFind.cw"
 include "ceditRecovery.cw"

@@ -12,6 +12,9 @@ if(XVFB AND DBUS)
     add_test(NAME cedit_numeric COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_SOURCE_DIR}/tests/test_cedit_numeric.py" ${arguments}
         --work "${CMAKE_BINARY_DIR}/tests/numeric")
+    add_test(NAME cedit_format COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_SOURCE_DIR}/tests/test_cedit_format.py" ${arguments}
+        --work "${CMAKE_BINARY_DIR}/tests/format")
     add_test(NAME cedit_project_setup COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_SOURCE_DIR}/tests/test_project_setup.py"
         --source "${CMAKE_SOURCE_DIR}" --sdk "${Cwhip_PREFIX}"

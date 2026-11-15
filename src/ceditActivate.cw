@@ -8,6 +8,7 @@
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-15  Apply the revised coding standard.
+ *   2026-11-15  Add Format Document and Format Selection to Edit.
  */
 
 /*
@@ -131,6 +132,14 @@ void Cedit.activate() {
     documentItems.append(menu.addItem(editMenu, "Strip Trailing Spaces",
             commandAction(
             "strip-trailing-spaces")))
+    formatItem = menu.addItem(editMenu, "Format Document", commandAction(
+            "format"))
+    documentItems.append(formatItem)
+    formatSelectionItem = menu.addItem(editMenu, "Format Selection",
+            commandAction(
+            "format-selection"))
+    menu.setItemEnabled(formatSelectionItem, false)
+    documentItems.append(formatSelectionItem)
     documentItems.append(reloadItem)
     preferencesItem = menu.addItem(editMenu, "Preferences...", commandAction(
             "preferences"))
@@ -403,6 +412,12 @@ void<> Cedit.commandAction(String command) {
     }
     if (command.equals("strip-trailing-spaces")) {
         return(_self().stripTrailingSpacesCurrent)
+    }
+    if (command.equals("format")) {
+        return(_self().formatDocument)
+    }
+    if (command.equals("format-selection")) {
+        return(_self().formatSelection)
     }
     if (command.equals("open")) {
         return(openAction)

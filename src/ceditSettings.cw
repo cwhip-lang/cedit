@@ -9,6 +9,7 @@
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-14  Public members for private-by-default cwhip.
  *   2026-11-15  Apply the revised coding standard.
+ *   2026-11-15  Add format and format-selection commands.
  */
 
 /*
@@ -88,6 +89,8 @@ class CeditSettings {
             CommandBinding("select-all", "Select all", "<Control>a"),
             CommandBinding("strip-trailing-spaces", "Strip trailing spaces",
                     ""),
+            CommandBinding("format", "Format document", ""),
+            CommandBinding("format-selection", "Format selection", ""),
             CommandBinding("preferences", "Preferences", "<Control>comma"),
             CommandBinding("project-new", "New project", ""),
             CommandBinding("project-open", "Open project", ""),

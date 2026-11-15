@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Edit > Format Document (`format`) and Edit > Format Selection
+  (`format-selection`) ask the language server for `textDocument/formatting`
+  and `textDocument/rangeFormatting`. A server that does not offer the
+  request, or that answers it with an error, leaves the buffer unchanged and
+  reports the failure on the status line.
 - Mark cedit class members `public:` so the editor and its compiled test
   drivers build with cwhip's private-by-default member access.
 - CODING cleanup: file headers, Changelog stamps, class/method comments

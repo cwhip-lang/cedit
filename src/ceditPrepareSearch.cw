@@ -8,6 +8,7 @@
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-15  Apply the revised coding standard.
+ *   2026-11-15  Enable Format Selection only when text is selected.
  */
 
 /*
@@ -399,7 +400,8 @@ void Cedit.updateStatus() {
 /*
  * Cedit.updateSelectionActions
  *
- * Purpose: Enable Cut and Copy when the current document has a selection.
+ * Purpose: Enable Cut, Copy, and Format Selection when the current
+ * document has a selection.
  *
  * Parameters:
  *   none.
@@ -419,12 +421,16 @@ void Cedit.updateSelectionActions() {
         menu.setItemEnabled(cutItem, selected)
         menu.setItemEnabled(copyItem, selected)
     }
+    if (formatSelectionItem != 0) {
+        menu.setItemEnabled(formatSelectionItem, selected)
+    }
 }
 
 /*
  * Cedit.updateEditActions
  *
- * Purpose: Enable Undo, Redo, Cut, and Copy to match the current document.
+ * Purpose: Enable Undo, Redo, Cut, Copy, and Format Selection to match
+ * the current document.
  *
  * Parameters:
  *   none.
@@ -458,6 +464,9 @@ void Cedit.updateEditActions() {
         menuSelected = selected
         menu.setItemEnabled(cutItem, selected)
         menu.setItemEnabled(copyItem, selected)
+    }
+    if (formatSelectionItem != 0) {
+        menu.setItemEnabled(formatSelectionItem, selected)
     }
 }
 
