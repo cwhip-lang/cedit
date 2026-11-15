@@ -8,10 +8,12 @@
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-14  Public members for private-by-default cwhip.
+ *   2026-11-15  Apply the revised coding standard.
  */
 
 /*
- * RecentEntry for cedit; see method comments below.
+ * A recent-menu row bound to one path. Choosing the row asks the
+ * editor to open that path again.
  */
 class RecentEntry {
     public:
@@ -22,13 +24,13 @@ class RecentEntry {
     /*
      * RecentEntry
      *
-     * Purpose: RecentEntry for the editor.
+     * Purpose: Remember the editor and the path this menu row reopens.
      *
      * Parameters:
-     *   owner.
-     *   filePath.
+     *   owner — editor that opens the path.
+     *   filePath — path to open when the row is chosen.
      *
-     * Returns: RecentEntry.
+     * Returns: the new RecentEntry.
      */
 
     RecentEntry(Cedit owner, String filePath) {
@@ -39,7 +41,7 @@ class RecentEntry {
     /*
      * choose
      *
-     * Purpose: choose for the editor.
+     * Purpose: Ask the editor to open this row's remembered path.
      *
      * Parameters:
      *   none.
@@ -51,4 +53,15 @@ class RecentEntry {
         editor.openRecentPath(path)
     }
 }
+/*
+ * RecentEntry._self
+ *
+ * Purpose: Return this row for GTK callbacks that need a receiver.
+ *
+ * Parameters:
+ *   none.
+ *
+ * Returns: this RecentEntry.
+ */
+
 RecentEntry RecentEntry._self() from "cwhip_gtk_self"

@@ -8,10 +8,12 @@
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-14  Public members for private-by-default cwhip.
+ *   2026-11-15  Apply the revised coding standard.
  */
 
 /*
- * ProjectNode for cedit; see method comments below.
+ * A project-tree row that can scan one directory. The explorer
+ * creates it when a folder expands and fills children from the scan.
  */
 class ProjectNode {
     public:
@@ -30,18 +32,23 @@ class ProjectNode {
     /*
      * ProjectNode
      *
-     * Purpose: ProjectNode for the editor.
+     * Purpose: Record the row, path, kind, and the explorer generation.
+     * Kind 1 is a folder, which is the only kind load() scans.
      *
      * Parameters:
-     *   owner.
-     *   row.
-     *   filePath.
-     *   entryKind.
+     *   owner — explorer that owns the row.
+     *   row — tree row id.
+     *   filePath — filesystem path shown on the row.
+     *   entryKind — tree kind; 1 means a directory.
      *
-     * Returns: ProjectNode.
+     * Returns: the new ProjectNode.
      */
 
-    ProjectNode(ProjectExplorer owner, int64 row, String filePath, int64 entryKind) {
+    ProjectNode(
+            ProjectExplorer owner,
+            int64 row,
+            String filePath,
+            int64 entryKind) {
         explorer = owner
         path = filePath
         kind = entryKind
@@ -53,7 +60,8 @@ class ProjectNode {
     /*
      * load
      *
-     * Purpose: load for the editor.
+     * Purpose: If this is an unscanned folder, show Loading and start a
+     * directory scan.
      *
      * Parameters:
      *   none.
@@ -62,49 +70,78 @@ class ProjectNode {
      */
 
     void load() {
-        if (kind != 1 || started) { return }
+        if (kind != 1 || started) {
+            return
+        }
         started = true
         explorer.addMessage(id, "Loading...", "content-loading-symbolic")
-        scan = Gtk.DirectoryScan(explorer.tree, path, explorer.hidden.active(), explorer.rootPath,
+        scan = Gtk.DirectoryScan(explorer.tree, path, explorer.hidden.active(),
+                explorer.rootPath,
             explorer.excludes, _self().received)
     }
 
     /*
      * received
      *
-     * Purpose: received for the editor.
+     * Purpose: Ignore a stale generation or a disposed tree. Otherwise
+     * append children, or on -1 show an error, empty folder, or restore.
      *
      * Parameters:
-     *   count.
-     *   message.
+     *   count — entries in this batch, or -1 when the scan finished.
+     *   message — error text used when count is -1.
      *
      * Returns: nothing.
      */
 
     void received(int64 count, String message) {
-        if (generation != explorer.generation || explorer.tree.disposed()) { return }
+        if (generation != explorer.generation || explorer.tree.disposed()) {
+            return
+        }
         if (!populated) {
             populated = true
             explorer.tree.clear(id)
         }
+
         if (count == -1) {
             complete = true
             scan = null
             error = message
             explorer.showExternal()
+
             if (!error.equals("")) {
-                explorer.addMessage(id, format("Could not read directory: {}", error), "dialog-error-symbolic")
-            } else {
+                explorer.addMessage(id, format(
+                        "Could not read directory: {}",
+                        error), "dialog-error-symbolic")
+            }
+            else {
                 if (explorer.tree.childCount(id) == 0) {
                     explorer.addMessage(id, "(Empty folder)", "folder-symbolic")
                 }
                 explorer.restoreChildren(path)
             }
+
             return
         }
-        scan.append(explorer.tree, id, explorer.nextId + 1, count, explorer.icons)
+
+        scan.append(
+                explorer.tree,
+                id,
+                explorer.nextId + 1,
+                count,
+                explorer.icons)
         explorer.nextId = explorer.nextId + count
         explorer.showExternal()
     }
 }
+/*
+ * ProjectNode._self
+ *
+ * Purpose: Return this row for GTK callbacks that need a receiver.
+ *
+ * Parameters:
+ *   none.
+ *
+ * Returns: this ProjectNode.
+ */
+
 ProjectNode ProjectNode._self() from "cwhip_gtk_self"

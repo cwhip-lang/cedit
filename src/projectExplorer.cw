@@ -8,6 +8,7 @@
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-14  Public members for private-by-default cwhip.
+ *   2026-11-15  Apply the revised coding standard.
  */
 
 /*
@@ -39,7 +40,8 @@ class ProjectExplorer {
     /*
      * Build the empty project explorer sidebar.
      *
-     * Purpose: create tree, context menu, unparented Show Hidden check, and a placeholder message until a folder is opened.
+     * Purpose: create tree, context menu, unparented Show Hidden check, and a
+     * placeholder message until a folder is opened.
      *
      * Parameters:
      *   openFile — callback invoked with a path when a file activates.
@@ -70,7 +72,8 @@ class ProjectExplorer {
         contextMenu = Gtk.ContextMenu(tree)
         contextRefresh = contextMenu.addItem("Refresh", _self().refresh)
         contextMenu.setItemEnabled(contextRefresh, false)
-        contextHidden = contextMenu.addCheckItem("Show Hidden", false, _self().contextHiddenChanged)
+        contextHidden = contextMenu.addCheckItem("Show Hidden", false, _self(
+                ).contextHiddenChanged)
         tree.setHExpand(true)
         tree.setVExpand(true)
         Gtk.ScrolledWindow scroll = Gtk.ScrolledWindow()
@@ -131,13 +134,16 @@ class ProjectExplorer {
      *
      * Returns: nothing.
      */
-    void setRoot(String path) { setProject(path, "Project Explorer", "", []) }
+    void setRoot(String path) {
+        setProject(path, "Project Explorer", "", [])
+    }
 
     // expandedPaths are absolute directories re-expanded as their parents load.
     /*
      * Bind the explorer to a project root and rebuild the tree.
      *
-     * Purpose: store root/excludes; enable refresh; rebuild with expandedPaths restored as parents load.
+     * Purpose: store root/excludes; enable refresh; rebuild with expandedPaths
+     * restored as parents load.
      *
      * Parameters:
      *   path — absolute project root.
@@ -147,7 +153,11 @@ class ProjectExplorer {
      *
      * Returns: nothing.
      */
-    void setProject(String path, String label, String patterns, list expandedPaths) {
+    void setProject(
+            String path,
+            String label,
+            String patterns,
+            list expandedPaths) {
         rootPath = path
         excludes = patterns
         externalFiles = []
@@ -160,7 +170,8 @@ class ProjectExplorer {
     /*
      * Whether a path lives under the current project root.
      *
-     * Purpose: require absolute path; compare against root with a trailing slash.
+     * Purpose: require absolute path; compare against root with a trailing
+     * slash.
      *
      * Parameters:
      *   path — filesystem path to test.
@@ -168,17 +179,23 @@ class ProjectExplorer {
      * Returns: true if path is under rootPath.
      */
     bool inRoot(String path) {
-        if (rootPath.equals("") || !path.startsWith("/")) { return(false) }
+        if (rootPath.equals("") || !path.startsWith("/")) {
+            return(false)
+        }
         String head = rootPath
-        if (!head.endsWith("/")) { head = format("{}/", head) }
+        if (!head.endsWith("/")) {
+            head = format("{}/", head)
+        }
         return(path.startsWith(head))
     }
 
-    // Remember a file that lives outside the project root and show it in the tree.
+    // Remember a file that lives outside the project root and show it in the
+    // tree.
     /*
      * Remember a file outside the project root and show it.
      *
-     * Purpose: append unique absolute paths to externalFiles, then showExternal.
+     * Purpose: append unique absolute paths to externalFiles, then
+     * showExternal.
      *
      * Parameters:
      *   path — absolute file path outside the root.
@@ -186,15 +203,23 @@ class ProjectExplorer {
      * Returns: nothing.
      */
     void noteFile(String path) {
-        if (rootPath.equals("") || tree.disposed() || !path.startsWith("/")) { return }
-        if (inRoot(path)) { return }
+        if (rootPath.equals("") || tree.disposed() || !path.startsWith("/")) {
+            return
+        }
+        if (inRoot(path)) {
+            return
+        }
         int64 i = 0
         bool found = false
         while (i < externalFiles.length) {
-            if ((externalFiles[i] as String).equals(path)) { found = true }
+            if ((externalFiles[i] as String).equals(path)) {
+                found = true
+            }
             i = i + 1
         }
-        if (!found) { externalFiles.append(path) }
+        if (!found) {
+            externalFiles.append(path)
+        }
         showExternal()
     }
 
@@ -209,18 +234,33 @@ class ProjectExplorer {
      * Returns: nothing.
      */
     void showExternal() {
-        if (rootPath.equals("") || tree.disposed()) { return }
+        if (rootPath.equals("") || tree.disposed()) {
+            return
+        }
         int64 parent = tree.findValue(rootPath)
-        if (parent == 0) { return }
+        if (parent == 0) {
+            return
+        }
+
         int64 i = 0
         while (i < externalFiles.length) {
+
             String path = externalFiles[i] as String
             if (tree.findValue(path) == 0) {
                 nextId = nextId + 1
-                tree.add(parent, nextId, path, "text-x-generic-symbolic", false, path, 0)
+                tree.add(
+                        parent,
+                        nextId,
+                        path,
+                        "text-x-generic-symbolic",
+                        false,
+                        path,
+                        0)
             }
+
             i = i + 1
         }
+
     }
 
     /*
@@ -239,23 +279,32 @@ class ProjectExplorer {
         int64 i = 0
         while (i < pending.length) {
             String path = pending[i] as String
-            if (System.FileSystem().dirname(path).equals(parent)) { ready.append(path) } else { remaining.append(path) }
+            if (System.FileSystem().dirname(path).equals(parent)) {
+                ready.append(path)
+            }
+            else {
+                remaining.append(path)
+            }
             i = i + 1
         }
         pending = remaining
         i = 0
         while (i < ready.length) {
             int64 id = tree.findValue(ready[i] as String)
-            if (id > 1 && tree.data(id) == 1) { tree.setExpanded(id, true) }
+            if (id > 1 && tree.data(id) == 1) {
+                tree.setExpanded(id, true)
+            }
             i = i + 1
         }
     }
 
-    // Expanded directories (absolute), including restores still waiting for a parent scan.
+    // Expanded directories (absolute), including restores still waiting for a
+    // parent scan.
     /*
      * Collect expanded directory paths, including pending restores.
      *
-     * Purpose: snapshot currently expanded folders plus pending paths still waiting for a parent scan.
+     * Purpose: snapshot currently expanded folders plus pending paths still
+     * waiting for a parent scan.
      *
      * Parameters:
      *   none.
@@ -264,11 +313,15 @@ class ProjectExplorer {
      */
     list expandedPaths() {
         list result = []
-        if (rootPath.equals("") || tree.disposed()) { return(result) }
+        if (rootPath.equals("") || tree.disposed()) {
+            return(result)
+        }
         int64 i = 0
         while (i < nodes.length) {
             ProjectNode node = nodes[i] as ProjectNode
-            if (node.id != 1 && tree.expanded(node.id)) { result.append(node.path) }
+            if (node.id != 1 && tree.expanded(node.id)) {
+                result.append(node.path)
+            }
             i = i + 1
         }
         i = 0
@@ -290,14 +343,17 @@ class ProjectExplorer {
      * Returns: nothing.
      */
     void refresh() {
-        if (rootPath.equals("") || tree.disposed()) { return }
+        if (rootPath.equals("") || tree.disposed()) {
+            return
+        }
         rebuild(expandedPaths())
     }
 
     /*
      * React to a saved file path for tree freshness.
      *
-     * Purpose: note external files; if under root and missing from the tree, bump generation and refresh.
+     * Purpose: note external files; if under root and missing from the tree,
+     * bump generation and refresh.
      *
      * Parameters:
      *   path — absolute saved file path.
@@ -305,21 +361,26 @@ class ProjectExplorer {
      * Returns: nothing.
      */
     void fileSaved(String path) {
-        if (rootPath.equals("") || tree.disposed()) { return }
+        if (rootPath.equals("") || tree.disposed()) {
+            return
+        }
         if (!inRoot(path)) {
             noteFile(path)
             return
         }
         generation = generation + 1
         int64 id = tree.findValue(path)
-        if (id > 0) { return }
+        if (id > 0) {
+            return
+        }
         refresh()
     }
 
     /*
      * Clear and recreate the tree for the current root.
      *
-     * Purpose: cancelLoads; add root folder row expanded; show external files; keep expanded list as pending.
+     * Purpose: cancelLoads; add root folder row expanded; show external files;
+     * keep expanded list as pending.
      *
      * Parameters:
      *   expanded — absolute directories to restore after scans.
@@ -348,7 +409,9 @@ class ProjectExplorer {
      * Returns: nothing.
      */
     void hiddenChanged(bool value) {
-        if (syncingHidden) { return }
+        if (syncingHidden) {
+            return
+        }
         syncingHidden = true
         contextMenu.setItemChecked(contextHidden, value)
         syncingHidden = false
@@ -365,14 +428,17 @@ class ProjectExplorer {
      * Returns: nothing.
      */
     void contextHiddenChanged(bool value) {
-        if (syncingHidden) { return }
+        if (syncingHidden) {
+            return
+        }
         hidden.setActive(value)
     }
 
     /*
      * Lazy-load a folder row when the user expands it.
      *
-     * Purpose: skip if a ProjectNode already exists; for folders, create ProjectNode and load().
+     * Purpose: skip if a ProjectNode already exists; for folders, create
+     * ProjectNode and load().
      *
      * Parameters:
      *   id — tree row id being expanded.
@@ -382,7 +448,9 @@ class ProjectExplorer {
     void expand(int64 id) {
         int64 i = 0
         while (i < nodes.length) {
-            if ((nodes[i] as ProjectNode).id == id) { return }
+            if ((nodes[i] as ProjectNode).id == id) {
+                return
+            }
             i = i + 1
         }
         if (tree.data(id) == 1) {
@@ -404,7 +472,20 @@ class ProjectExplorer {
      */
     void activateFile(int64 id) {
         int64 kind = tree.data(id)
-        if (kind >= 0 && kind != 1) { open(tree.value(id)) }
+        if (kind >= 0 && kind != 1) {
+            open(tree.value(id))
+        }
     }
 }
+/*
+ * ProjectExplorer._self
+ *
+ * Purpose: Return this explorer for GTK callbacks that need a receiver.
+ *
+ * Parameters:
+ *   none.
+ *
+ * Returns: this ProjectExplorer.
+ */
+
 ProjectExplorer ProjectExplorer._self() from "cwhip_gtk_self"

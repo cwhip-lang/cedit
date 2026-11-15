@@ -8,6 +8,7 @@
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-14  Public members for private-by-default cwhip.
+ *   2026-11-15  Apply the revised coding standard.
  */
 
 /*
@@ -71,11 +72,13 @@ class CeditSettings {
             CommandBinding("quit", "Quit", "<Control>q"),
             CommandBinding("find", "Find", "<Control>f"),
             CommandBinding("replace", "Find and replace", "<Control>h"),
-            CommandBinding("find-in-project", "Find in project", "<Control><Shift>f"),
+            CommandBinding("find-in-project", "Find in project",
+                    "<Control><Shift>f"),
             CommandBinding("goto-line", "Go to line", "<Control>g"),
             CommandBinding("indent", "Indent", "Tab"),
             CommandBinding("outdent", "Outdent", "<Shift>Tab"),
-            CommandBinding("toggle-comment", "Toggle line comment", "<Control>slash"),
+            CommandBinding("toggle-comment", "Toggle line comment",
+                    "<Control>slash"),
             CommandBinding("toggle-block-comment", "Toggle block comment", ""),
             CommandBinding("undo", "Undo", "<Control>z"),
             CommandBinding("redo", "Redo", "<Control><Shift>z"),
@@ -83,7 +86,8 @@ class CeditSettings {
             CommandBinding("copy", "Copy", "<Control>c"),
             CommandBinding("paste", "Paste", "<Control>v"),
             CommandBinding("select-all", "Select all", "<Control>a"),
-            CommandBinding("strip-trailing-spaces", "Strip trailing spaces", ""),
+            CommandBinding("strip-trailing-spaces", "Strip trailing spaces",
+                    ""),
             CommandBinding("preferences", "Preferences", "<Control>comma"),
             CommandBinding("project-new", "New project", ""),
             CommandBinding("project-open", "Open project", ""),
@@ -110,7 +114,8 @@ class CeditSettings {
         shortcutRevision = 1
         String configHome = System.Process().getEnv("XDG_CONFIG_HOME")
         if (configHome.equals("")) {
-            configHome = System.FileSystem().join(System.Process().getEnv("HOME"), ".config")
+            configHome = System.FileSystem().join(System.Process().getEnv(
+                    "HOME"), ".config")
         }
         globalPath = System.FileSystem().join(configHome, "cwhip/settings.toml")
         path = globalPath
@@ -123,12 +128,12 @@ class CeditSettings {
     /*
      * localPath
      *
-     * Purpose: localPath.
+     * Purpose: Return the .cedit/settings.toml path under a project root.
      *
      * Parameters:
-     *   root.
+     *   root — folder whose .cedit settings file is requested.
      *
-     * Returns: String.
+     * Returns: the .cedit/settings.toml path for that root.
      */
 
     String localPath(String root) {
@@ -138,7 +143,7 @@ class CeditSettings {
     /*
      * resetEditor
      *
-     * Purpose: resetEditor.
+     * Purpose: Set font, tabs, view, and edit options to built-in defaults.
      *
      * Parameters:
      *   none.
@@ -171,25 +176,40 @@ class CeditSettings {
     /*
      * error
      *
-     * Purpose: error.
+     * Purpose: Record a settings error and mark the settings not writable.
      *
      * Parameters:
-     *   message.
+     *   message — text appended to the error list.
      *
      * Returns: nothing.
      */
 
     void error(String message) {
-        if (!errors.equals("")) { errors.append("\n") }
+        if (!errors.equals("")) {
+            errors.append("\n")
+        }
         errors.append(message)
         writable = false
     }
+
+    /*
+     * command
+     *
+     * Purpose: Find the binding whose id matches.
+     *
+     * Parameters:
+     *   id — command id to look up.
+     *
+     * Returns: that binding, or null when no command uses id.
+     */
 
     CommandBinding command(String id) {
         int64 i = 0
         while (i < commands.length) {
             CommandBinding binding = commands[i] as CommandBinding
-            if (binding.id.equals(id)) { return(binding) }
+            if (binding.id.equals(id)) {
+                return(binding)
+            }
             i = i + 1
         }
         return(null)
@@ -198,36 +218,49 @@ class CeditSettings {
     /*
      * bindingError
      *
-     * Purpose: bindingError.
+     * Purpose: Validate a shortcut trigger and report conflicts.
      *
      * Parameters:
-     *   binding.
-     *   trigger.
+     *   binding — command binding being checked.
+     *   trigger — accelerator text to validate.
      *
-     * Returns: String.
+     * Returns: an error message, or empty when the trigger is allowed.
      */
 
     String bindingError(CommandBinding binding, String trigger) {
-        if (trigger.equals("")) { return("") }
+        if (trigger.equals("")) {
+            return("")
+        }
         String normalized = binding.normalized
-        if (!trigger.equals(binding.trigger)) { normalized = Gtk.Keyboard().normalize(trigger) }
-        if (normalized.equals("")) { return(format("Invalid shortcut trigger: {}", trigger)) }
+        if (!trigger.equals(binding.trigger)) {
+            normalized = Gtk.Keyboard().normalize(trigger)
+        }
+        if (normalized.equals("")) {
+            return(format("Invalid shortcut trigger: {}", trigger))
+        }
+
         int64 i = 0
         while (i < commands.length) {
             CommandBinding other = commands[i] as CommandBinding
             if (other != binding && !other.trigger.equals("") &&
-                other.normalized.equals(normalized)) {
-                return(format("Shortcut conflicts with {}: {}", other.name, trigger))
+                other.normalized.equals(
+                    normalized)) {
+                return(format(
+                        "Shortcut conflicts with {}: {}",
+                        other.name,
+                        trigger))
             }
             i = i + 1
         }
+
         return("")
     }
 
     /*
      * loadLegacy
      *
-     * Purpose: loadLegacy.
+     * Purpose: Replace shortcuts from cwhip-shortcuts.conf when that legacy
+     * file is present.
      *
      * Parameters:
      *   none.
@@ -238,7 +271,9 @@ class CeditSettings {
     void loadLegacy() {
         String legacy = "cwhip-shortcuts.conf"
         String presence = Gtk.Config().fileStatus(legacy)
-        if (presence.equals("missing")) { return }
+        if (presence.equals("missing")) {
+            return
+        }
         if (presence.length > 0) {
             error(format("Could not read {}: {}", legacy, presence))
             return
@@ -246,7 +281,8 @@ class CeditSettings {
         System.File file = null
         try {
             file = System.File(legacy, "r")
-        } except(Exception) {
+        }
+        except(Exception) {
             error(format("Could not read {}", legacy))
             return
         }
@@ -264,35 +300,60 @@ class CeditSettings {
             i = i + 1
         }
         i = 0
+
         while (i < lines.length) {
+
             String line = (lines[i] as String).trim()
             if (!line.equals("")) {
+
                 list fields = line.split("=")
                 if (fields.length != 2) {
                     error(format("Invalid shortcut config line {}", i + 1))
-                } else {
-                    CommandBinding binding = command((fields[1] as String).trim())
+                }
+                else {
+
+                    CommandBinding binding = command((fields[1] as String).trim(
+                            ))
                     String trigger = (fields[0] as String).trim()
                     if (binding == null) {
-                        error(format("Unknown legacy shortcut command: {}", fields[1] as String))
-                    } else {
+                        error(format("Unknown legacy shortcut command: {}",
+                                fields[
+                                1] as String))
+                    }
+                    else {
                         String problem = bindingError(binding, trigger)
-                        if (trigger.length == 0) { problem = "Empty legacy shortcut trigger" }
+                        if (trigger.length == 0) {
+                            problem = "Empty legacy shortcut trigger"
+                        }
+
                         if (!problem.equals("")) {
                             legacyConflict = true
                             error(problem)
-                        } else {
-                            if (!binding.trigger.equals("")) {
-                                error(format("Duplicate legacy command: {}", binding.id))
-                            } else { binding.setTrigger(trigger) }
                         }
+                        else {
+                            if (!binding.trigger.equals("")) {
+                                error(format(
+                                        "Duplicate legacy command: {}",
+                                        binding.id))
+                            }
+                            else {
+                                binding.setTrigger(trigger)
+                            }
+                        }
+
                     }
+
                 }
+
             }
+
             i = i + 1
         }
+
         CommandBinding preferences = command("preferences")
-        if (preferences.trigger.length == 0 && bindingError(preferences, preferences.defaultTrigger).length == 0) {
+        if (preferences.trigger.length == 0 && bindingError(
+                preferences,
+                preferences.defaultTrigger).length == 0) {
             preferences.setTrigger(preferences.defaultTrigger)
         }
     }
@@ -300,13 +361,13 @@ class CeditSettings {
     /*
      * value
      *
-     * Purpose: value.
+     * Purpose: Look up one key in the settings text already loaded.
      *
      * Parameters:
-     *   section.
-     *   key.
+     *   section — TOML table name; empty selects the document root.
+     *   key — name of the value inside that table.
      *
-     * Returns: String.
+     * Returns: the raw config value, or empty when the key is absent.
      */
 
     String value(String section, String key) {
@@ -316,45 +377,61 @@ class CeditSettings {
     /*
      * integer
      *
-     * Purpose: integer.
+     * Purpose: Parse an editor integer in range, else use the fallback.
+     * Invalid text is reported.
      *
      * Parameters:
-     *   key.
-     *   fallback.
-     *   minimum.
-     *   maximum.
+     *   key — name under the editor table.
+     *   fallback — value returned when the key is missing or invalid.
+     *   minimum — smallest accepted value.
+     *   maximum — largest accepted value.
      *
-     * Returns: int64.
+     * Returns: the parsed integer, or the fallback.
      */
 
     int64 integer(String key, int64 fallback, int64 minimum, int64 maximum) {
         String raw = value("editor", key)
-        if (raw.equals("")) { return(fallback) }
+        if (raw.equals("")) {
+            return(fallback)
+        }
         if (raw.startsWith("i")) {
             int64 number = byteSpan(raw, 1, raw.length).toInt64()
-            if (number >= minimum && number <= maximum) { return(number) }
+            if (number >= minimum && number <= maximum) {
+                return(number)
+            }
         }
-        error(format("editor.{} must be an integer from {} to {}", key, minimum, maximum))
+        error(format(
+                "editor.{} must be an integer from {} to {}",
+                key,
+                minimum,
+                maximum))
         return(fallback)
     }
 
     /*
      * boolean
      *
-     * Purpose: boolean.
+     * Purpose: Parse an editor boolean, or use the fallback. Invalid text
+     * is reported.
      *
      * Parameters:
-     *   key.
-     *   fallback.
+     *   key — name under the editor table.
+     *   fallback — value returned when the key is missing or invalid.
      *
-     * Returns: bool.
+     * Returns: the parsed boolean, or the fallback.
      */
 
     bool boolean(String key, bool fallback) {
         String raw = value("editor", key)
-        if (raw.equals("")) { return(fallback) }
-        if (raw.equals("btrue")) { return(true) }
-        if (raw.equals("bfalse")) { return(false) }
+        if (raw.equals("")) {
+            return(fallback)
+        }
+        if (raw.equals("btrue")) {
+            return(true)
+        }
+        if (raw.equals("bfalse")) {
+            return(false)
+        }
         error(format("editor.{} must be a boolean", key))
         return(fallback)
     }
@@ -362,27 +439,35 @@ class CeditSettings {
     /*
      * fontError
      *
-     * Purpose: fontError.
+     * Purpose: Check that a font name is 1-128 characters, has no controls,
+     * and is an installed monospace family.
      *
      * Parameters:
-     *   font.
+     *   font — family name to check.
      *
-     * Returns: String.
+     * Returns: an error message, or empty when the family is acceptable.
      */
 
     String fontError(String font) {
-        if (font.trim().equals("") || font.length > 128 || font.contains("\n") ||
-            font.contains("\r") || font.contains("\t")) {
-            return("Font family must be 1-128 characters, without control characters")
+        if (font.trim().equals("") || font.length > 128 || font.contains("\n")
+                ||
+            font.contains(
+                "\r") || font.contains(
+                "\t")) {
+            return(
+                    "Font family must be 1-128 characters, without control characters")
         }
-        if (!Gtk.Font().isMonospace(font)) { return("Choose an installed monospace font family (or monospace)") }
+        if (!Gtk.Font().isMonospace(font)) {
+            return("Choose an installed monospace font family (or monospace)")
+        }
         return("")
     }
 
     /*
      * load
      *
-     * Purpose: load.
+     * Purpose: Read the settings file into editor options and shortcuts.
+     * A missing file, or one with no keyboard table, loads the legacy map.
      *
      * Parameters:
      *   none.
@@ -400,22 +485,31 @@ class CeditSettings {
             error(format("Could not read settings: {}", presence))
             return
         }
-        if (!System.FileSystem().isFile(path) || System.FileSystem().fileSize(path) > 65536) {
+        if (!System.FileSystem().isFile(path) || System.FileSystem().fileSize(
+                path) > 65536) {
             error("Settings must be a regular TOML file no larger than 64 KiB")
             return
         }
         System.File file = null
         try {
             file = System.File(path, "r")
-        } except(Exception) {
-            error(format("Could not read settings: {}", System.System().lastError()))
+        }
+        except(Exception) {
+            error(format("Could not read settings: {}", System.System(
+                    ).lastError()))
             return
         }
-        try { original = file.readAll() }
-        except(Exception) as failure { error(failure.message) }
+        try {
+            original = file.readAll()
+        }
+        except(Exception) as failure {
+            error(failure.message)
+        }
         String readError = System.System().lastError()
         file.close()
-        if (!readError.equals("")) { error(readError) }
+        if (!readError.equals("")) {
+            error(readError)
+        }
         if (!GtkSource.Content().isText(original)) {
             error("Malformed settings TOML: embedded NUL bytes")
             return
@@ -430,46 +524,78 @@ class CeditSettings {
             error("Unsupported settings version: expected version = 1")
             return
         }
-        if (!value("", "editor").equals("") && !value("", "editor").equals("t")) {
+        if (!value("", "editor").equals("") && !value("", "editor").equals(
+                "t")) {
             error("editor must be a table")
         }
-        if (!value("", "keyboard").equals("") && !value("", "keyboard").equals("t")) {
+        if (!value("", "keyboard").equals("") && !value("", "keyboard").equals(
+                "t")) {
             error("keyboard must be a table")
         }
-        if (!value("", "project").equals("") && !value("", "project").equals("t")) {
+        if (!value("", "project").equals("") && !value("", "project").equals(
+                "t")) {
             error("project must be a table")
         }
-        if (value("", "keyboard").equals("")) { loadLegacy() }
+        if (value("", "keyboard").equals("")) {
+            loadLegacy()
+        }
         // Startup reopen metadata lives only in the global settings file. Local
         // .cedit copies may still contain a leftover [project] table from older
         // seeds; ignore it so a folder preference cannot hide a missing global
         // last_root (or the other way around).
+
         if (path.equals(globalPath)) {
+
             String reopen = value("project", "reopen_last")
-            if (reopen.equals("btrue")) { reopenLast = true }
+            if (reopen.equals("btrue")) {
+                reopenLast = true
+            }
             else {
-                if (reopen.equals("bfalse")) { reopenLast = false }
+                if (reopen.equals("bfalse")) {
+                    reopenLast = false
+                }
                 else {
-                    if (!reopen.equals("")) { error("project.reopen_last must be a boolean") }
+                    if (!reopen.equals("")) {
+                        error("project.reopen_last must be a boolean")
+                    }
                 }
             }
+
             String last = value("project", "last_root")
-            if (last.equals("") || last.equals("s")) { lastRoot = "" }
-            else {
-                if (!last.startsWith("s/") || last.contains("\n") || last.length > 4097) {
-                    error("project.last_root must be an absolute folder path")
-                } else { lastRoot = byteSpan(last, 1, last.length) }
+            if (last.equals("") || last.equals("s")) {
+                lastRoot = ""
             }
+            else {
+                if (!last.startsWith("s/") || last.contains("\n")
+                        || last.length > 4097) {
+                    error("project.last_root must be an absolute folder path")
+                }
+                else {
+                    lastRoot = byteSpan(last, 1, last.length)
+                }
+            }
+
         }
+
         String font = value("editor", "font_family")
         if (!font.equals("")) {
-            if (!font.startsWith("s")) { error("editor.font_family must be a string") }
+
+            if (!font.startsWith("s")) {
+                error("editor.font_family must be a string")
+            }
             else {
                 String name = byteSpan(font, 1, font.length)
                 String problem = fontError(name)
-                if (problem.equals("")) { fontFamily = name } else { error(problem) }
+                if (problem.equals("")) {
+                    fontFamily = name
+                }
+                else {
+                    error(problem)
+                }
             }
+
         }
+
         fontSize = integer("font_size", fontSize, 6, 72)
         tabWidth = integer("tab_width", tabWidth, 1, 16)
         insertSpaces = boolean("insert_spaces", insertSpaces)
@@ -480,29 +606,41 @@ class CeditSettings {
         showProjectManager = boolean("show_project_manager", showProjectManager)
         String languageServer = value("editor", "lsp_command")
         if (!languageServer.equals("")) {
-            if (!languageServer.startsWith("s")) { error("editor.lsp_command must be a string") }
-            else { lspCommand = byteSpan(languageServer, 1, languageServer.length) }
+            if (!languageServer.startsWith("s")) {
+                error("editor.lsp_command must be a string")
+            }
+            else {
+                lspCommand = byteSpan(languageServer, 1, languageServer.length)
+            }
         }
         wrap = boolean("wrap", wrap)
         rightMargin = integer("right_margin", rightMargin, 0, 512)
         highlightLine = boolean("highlight_current_line", highlightLine)
         saveOnTabLoss = boolean("save_on_tab_loss", saveOnTabLoss)
         saveOnWindowLoss = boolean("save_on_window_loss", saveOnWindowLoss)
-        stripTrailingSpaces = boolean("strip_trailing_spaces", stripTrailingSpaces)
-        autoCompleteBrackets = boolean("auto_complete_brackets", autoCompleteBrackets)
+        stripTrailingSpaces = boolean("strip_trailing_spaces",
+                stripTrailingSpaces)
+        autoCompleteBrackets = boolean("auto_complete_brackets",
+                autoCompleteBrackets)
         autoIndent = boolean("auto_indent", autoIndent)
         showUnsavedMarks = boolean("show_unsaved_marks", showUnsavedMarks)
         // Stage the complete map before checking conflicts, allowing swaps.
+
         int64 i = 0
         while (i < commands.length) {
             CommandBinding binding = commands[i] as CommandBinding
             String raw = value("keyboard", binding.id)
             if (!raw.equals("")) {
-                if (!raw.startsWith("s")) { error(format("keyboard.{} must be a string", binding.id)) }
-                else { binding.setTrigger(byteSpan(raw, 1, raw.length)) }
+                if (!raw.startsWith("s")) {
+                    error(format("keyboard.{} must be a string", binding.id))
+                }
+                else {
+                    binding.setTrigger(byteSpan(raw, 1, raw.length))
+                }
             }
             i = i + 1
         }
+
         i = 0
         while (i < commands.length) {
             CommandBinding binding = commands[i] as CommandBinding
@@ -516,7 +654,9 @@ class CeditSettings {
         String key = Gtk.Config().key(original, "keyboard", 0)
         i = 0
         while (!key.equals("")) {
-            if (command(key) == null) { error(format("Unknown keyboard command: {}", key)) }
+            if (command(key) == null) {
+                error(format("Unknown keyboard command: {}", key))
+            }
             i = i + 1
             key = Gtk.Config().key(original, "keyboard", i)
         }
@@ -525,7 +665,7 @@ class CeditSettings {
     /*
      * resetKeyboard
      *
-     * Purpose: resetKeyboard.
+     * Purpose: Set every command shortcut back to its default trigger.
      *
      * Parameters:
      *   none.
@@ -545,37 +685,48 @@ class CeditSettings {
     /*
      * serialize
      *
-     * Purpose: serialize.
+     * Purpose: Merge editor options and shortcuts into settings TOML. Only the
+     * global file keeps reopen-last and last-root.
      *
      * Parameters:
      *   none.
      *
-     * Returns: String.
+     * Returns: the merged settings document.
      */
 
     String serialize() {
-        String text = format("version = 1\n[editor]\nfont_family = {}\nfont_size = {}\ntab_width = {}\ninsert_spaces = {}\nline_numbers = {}\nshow_whitespace = {}\nshow_line_ends = {}\nshow_indent_markers = {}\nshow_project_manager = {}\nlsp_command = {}\nwrap = {}\nright_margin = {}\nhighlight_current_line = {}\nsave_on_tab_loss = {}\nsave_on_window_loss = {}\nstrip_trailing_spaces = {}\nauto_complete_brackets = {}\nauto_indent = {}\nshow_unsaved_marks = {}\n[keyboard]\n",
-            Gtk.Config().quote(fontFamily), fontSize, tabWidth, insertSpaces, lineNumbers,
+        String text = format(
+                "version = 1\n[editor]\nfont_family = {}\nfont_size = {}\ntab_width = {}\ninsert_spaces = {}\nline_numbers = {}\nshow_whitespace = {}\nshow_line_ends = {}\nshow_indent_markers = {}\nshow_project_manager = {}\nlsp_command = {}\nwrap = {}\nright_margin = {}\nhighlight_current_line = {}\nsave_on_tab_loss = {}\nsave_on_window_loss = {}\nstrip_trailing_spaces = {}\nauto_complete_brackets = {}\nauto_indent = {}\nshow_unsaved_marks = {}\n[keyboard]\n",
+            Gtk.Config().quote(fontFamily), fontSize, tabWidth, insertSpaces,
+                    lineNumbers,
             showWhitespace, showLineEnds, showIndentMarkers, showProjectManager,
-            Gtk.Config().quote(lspCommand), wrap, rightMargin, highlightLine, saveOnTabLoss,
-            saveOnWindowLoss, stripTrailingSpaces, autoCompleteBrackets, autoIndent,
+            Gtk.Config().quote(lspCommand), wrap, rightMargin, highlightLine,
+                    saveOnTabLoss,
+            saveOnWindowLoss, stripTrailingSpaces, autoCompleteBrackets,
+                    autoIndent,
             showUnsavedMarks)
         int64 i = 0
         while (i < commands.length) {
             CommandBinding binding = commands[i] as CommandBinding
-            text.append(format("{} = {}\n", binding.id, Gtk.Config().quote(binding.trigger)))
+            text.append(format("{} = {}\n", binding.id, Gtk.Config().quote(
+                    binding.trigger)))
             i = i + 1
         }
-        // Keep reopen_last/last_root out of per-folder settings; startup reads them
+        // Keep reopen_last/last_root out of per-folder settings; startup reads
+        // them
         // from the global file via writeStartupToGlobal.
         if (path.equals(globalPath)) {
             text.append(format("[project]\nreopen_last = {}\nlast_root = {}\n",
-                reopenLast, Gtk.Config().quote(lastRoot)))
+                reopenLast, Gtk.Config().quote(
+                    lastRoot)))
         }
         String merged = Gtk.Config().merge(original, text)
         if (!path.equals(globalPath) &&
-            (merged.contains("reopen_last") || merged.contains("last_root"))) {
-            // Config.remove rewrites the document; only strip when leftover startup
+            (merged.contains(
+                "reopen_last") || merged.contains(
+                "last_root"))) {
+            // Config.remove rewrites the document; only strip when leftover
+            // startup
             // keys are present so ordinary preference saves stay stable.
             merged = Gtk.Config().remove(merged, "project", "reopen_last")
             merged = Gtk.Config().remove(merged, "project", "last_root")
@@ -597,9 +748,15 @@ class CeditSettings {
 
     int64 byteSpanBound(int64 value, int64 length) {
         int64 index = value
-        if (index < 0) { index = index + length }
-        if (index < 0) { return(0) }
-        if (index > length) { return(length) }
+        if (index < 0) {
+            index = index + length
+        }
+        if (index < 0) {
+            return(0)
+        }
+        if (index > length) {
+            return(length)
+        }
         return(index)
     }
     /*
@@ -618,7 +775,9 @@ class CeditSettings {
     String byteSpan(String text, int64 first, int64 last) {
         int64 lower = byteSpanBound(first, text.length)
         int64 end = byteSpanBound(last, text.length)
-        if (end <= lower) { return("") }
+        if (end <= lower) {
+            return("")
+        }
         return(text[lower..(end - 1)])
     }
 }

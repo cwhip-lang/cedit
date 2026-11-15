@@ -1,5 +1,6 @@
 /*
- * src/workspaceFile.cw - One open-tab path plus caret for workspace persistence.
+ * src/workspaceFile.cw - One open-tab path plus caret for workspace
+ * persistence.
  *
  * Created: 2026-10-29
  * Author: Auto
@@ -8,10 +9,12 @@
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-14  Public members for private-by-default cwhip.
+ *   2026-11-15  Apply the revised coding standard.
  */
 
 /*
- * WorkspaceFile for cedit; see method comments below.
+ * One open tab recorded in the workspace: its path and the caret
+ * line and column used to restore the session.
  */
 class WorkspaceFile {
     public:
@@ -21,14 +24,14 @@ class WorkspaceFile {
     /*
      * WorkspaceFile
      *
-     * Purpose: WorkspaceFile for the editor.
+     * Purpose: Store one open tab's path and caret position.
      *
      * Parameters:
-     *   file.
-     *   row.
-     *   col.
+     *   file — path remembered for the tab.
+     *   row — caret line.
+     *   col — caret column.
      *
-     * Returns: WorkspaceFile.
+     * Returns: the new WorkspaceFile.
      */
 
     WorkspaceFile(String file, int64 row, int64 col) {

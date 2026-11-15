@@ -8,6 +8,7 @@
  *   2026-10-29  Initial file.
  *   2026-11-13  CODING headers and method comments.
  *   2026-11-14  Public members for private-by-default cwhip.
+ *   2026-11-15  Apply the revised coding standard.
  */
 
 /*
@@ -33,7 +34,8 @@ class KeyboardPreference {
     /*
      * Build a keyboard preference row and attach it to the grid.
      *
-     * Purpose: wire widgets, place them on two grid rows, and connect change/record/reset/disable handlers.
+     * Purpose: wire widgets, place them on two grid rows, and connect
+     * change/record/reset/disable handlers.
      *
      * Parameters:
      *   model — CeditSettings used for bindingError checks.
@@ -45,8 +47,13 @@ class KeyboardPreference {
      *
      * Returns: KeyboardPreference with widgets attached.
      */
-    KeyboardPreference(CeditSettings model, CommandBinding command, void<> changed,
-                       void<> prepare, Gtk.Grid grid, int64 index) {
+    KeyboardPreference(
+            CeditSettings model,
+            CommandBinding command,
+            void<> changed,
+                       void<> prepare,
+            Gtk.Grid grid,
+            int64 index) {
         settings = model
         binding = command
         applied = changed
@@ -74,7 +81,8 @@ class KeyboardPreference {
     /*
      * Validate and apply a typed or recorded trigger string.
      *
-     * Purpose: ignore programmatic refresh; reject empty (use Disable); show bindingError; on success setTrigger and notify applied.
+     * Purpose: ignore programmatic refresh; reject empty (use Disable); show
+     * bindingError; on success setTrigger and notify applied.
      *
      * Parameters:
      *   text — accelerator text from the entry.
@@ -82,21 +90,26 @@ class KeyboardPreference {
      * Returns: nothing.
      */
     void changedTrigger(String text) {
-        if (refreshing) { return }
+        if (refreshing) {
+            return
+        }
         if (text.equals("")) {
             errorLabel.setText("Use Disable to remove this binding")
             return
         }
         String problem = settings.bindingError(binding, text)
         errorLabel.setText(problem)
-        if (!problem.equals("")) { return }
+        if (!problem.equals("")) {
+            return
+        }
         binding.setTrigger(text)
         applied()
     }
     /*
      * Start capturing a keyboard shortcut into the entry.
      *
-     * Purpose: notify prepareRecord, prompt the user, and begin Gtk.Keyboard record with recorded as completion.
+     * Purpose: notify prepareRecord, prompt the user, and begin Gtk.Keyboard
+     * record with recorded as completion.
      *
      * Parameters:
      *   none.
@@ -120,7 +133,9 @@ class KeyboardPreference {
      */
     void recorded(String trigger) {
         cancelRecording()
-        if (!trigger.equals("")) { setTrigger(trigger) }
+        if (!trigger.equals("")) {
+            setTrigger(trigger)
+        }
     }
     /*
      * Abort an in-progress keyboard capture.
@@ -156,7 +171,8 @@ class KeyboardPreference {
     /*
      * Clear the binding so it has no accelerator.
      *
-     * Purpose: cancel capture, clear the entry without validation, set empty trigger, and notify applied.
+     * Purpose: cancel capture, clear the entry without validation, set empty
+     * trigger, and notify applied.
      *
      * Parameters:
      *   none.
@@ -224,5 +240,16 @@ class KeyboardPreference {
         errorLabel.setVisible(visible)
     }
 }
+
+/*
+ * KeyboardPreference._self
+ *
+ * Purpose: Return this row for GTK callbacks that need a receiver.
+ *
+ * Parameters:
+ *   none.
+ *
+ * Returns: this KeyboardPreference.
+ */
 
 KeyboardPreference KeyboardPreference._self() from "cwhip_gtk_self"
